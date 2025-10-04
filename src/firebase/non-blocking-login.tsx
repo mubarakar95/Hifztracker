@@ -6,6 +6,7 @@ import {
   signInWithEmailAndPassword,
   signInWithPopup,
   AuthProvider,
+  signInWithRedirect,
 } from 'firebase/auth';
 
 /** Initiate anonymous sign-in (non-blocking). */
@@ -35,4 +36,12 @@ export function initiateEmailSignIn(authInstance: Auth, email: string, password:
  */
 export function nonBlockingSignInWithPopup(auth: Auth, provider: AuthProvider) {
   return signInWithPopup(auth, provider);
+}
+
+/**
+ * Initiates a sign-in with a redirect.
+ * Does NOT await the operation. Auth state is handled upon redirect.
+ */
+export function nonBlockingSignInWithRedirect(auth: Auth, provider: AuthProvider) {
+  signInWithRedirect(auth, provider);
 }
