@@ -114,11 +114,11 @@ export const JuzCircle = ({
           );
         })}
       </svg>
-      <div className="mt-1 text-center">
+      <div className="mt-1 text-center w-16">
         <span className="text-xs font-medium text-muted-foreground">
           Juz {juzNumber}
         </span>
-        <span className="block text-[10px] text-muted-foreground">
+        <span className="block text-[10px] text-muted-foreground truncate">
             {juzArabicNames.get(juzNumber)}
         </span>
       </div>
