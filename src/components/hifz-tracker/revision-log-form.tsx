@@ -51,13 +51,14 @@ export function RevisionLogForm({ onSubmit }: RevisionLogFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      date: new Date(),
       comments: "",
     },
   });
 
   function handleFormSubmit(values: z.infer<typeof formSchema>) {
     onSubmit(values);
-    form.reset();
+    form.reset({date: new Date(), comments: ""});
   }
 
   return (
@@ -72,7 +73,7 @@ export function RevisionLogForm({ onSubmit }: RevisionLogFormProps) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Half Juz</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a half juz" />
@@ -140,7 +141,7 @@ export function RevisionLogForm({ onSubmit }: RevisionLogFormProps) {
               <FormControl>
                 <RadioGroup
                   onValueChange={field.onChange}
-                  defaultValue={field.value}
+                  value={field.value}
                   className="flex flex-col space-y-1"
                 >
                   {RevisionQualities.map((quality) => (

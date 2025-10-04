@@ -1,10 +1,19 @@
 "use client";
 
-import { useState } from "react";
-import { PlusCircle } from "lucide-react";
+import { useMemo, useState } from "react";
+import { PlusCircle, Loader2 } from "lucide-react";
+import {
+  collection,
+  doc,
+  serverTimestamp,
+  Timestamp,
+} from "firebase/firestore";
 
-import type { Revision } from "@/lib/types";
-import { initialRevisions } from "@/lib/data";
+import { useCollection, useFirebase } from "@/firebase";
+import {
+  addDocumentNonBlocking,
+  deleteDocumentNonBlocking,
+} from "@/firebase/non-blocking-updates";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -19,23 +28,64 @@ import { JourneyOverview } from "@/components/hifz-tracker/journey-overview";
 import { RevisionHistoryTable } from "@/components/hifz-tracker/revision-history-table";
 import { RevisionLogForm } from "@/components/hifz-tracker/revision-log-form";
 import { RevisionCalendar } from "@/components/hifz-tracker/revision-calendar";
+import { Login } from "@/components/hifz-tracker/login";
+import type { Revision, RevisionLog } from "@/lib/types";
 
 export default function Home() {
-  const [revisions, setRevisions] = useState<Revision[]>(initialRevisions);
+  const { user, isUserLoading, firestore } = useFirebase();
   const [isFormOpen, setIsFormOpen] = useState(false);
 
+  const revisionsQuery = useMemo(() => {
+    if (!user || !firestore) return null;
+    return collection(firestore, "users", user.uid, "revisionLogs");
+  }, [user, firestore]);
+
+  const { data: revisionLogs, isLoading: isLoadingRevisions } =
+    useCollection<RevisionLog>(revisionsQuery);
+
+  const revisions: Revision[] = useMemo(() => {
+    if (!revisionLogs) return [];
+    return revisionLogs
+      .map((log) => ({
+        ...log,
+        date: (log.revisionDate as Timestamp).toDate(),
+        quality: log.qualityRating,
+        comments: log.comments,
+        halfJuz: log.halfJuz.toString(),
+      }))
+      .sort((a, b) => b.date.getTime() - a.date.getTime());
+  }, [revisionLogs]);
+
   const addRevision = (newRevisionData: Omit<Revision, "id">) => {
-    const newRevision: Revision = {
-      ...newRevisionData,
-      id: crypto.randomUUID(),
+    if (!revisionsQuery) return;
+    const newLog: Omit<RevisionLog, "id" | "userId"> = {
+      halfJuz: parseInt(newRevisionData.halfJuz, 10),
+      revisionDate: serverTimestamp(),
+      qualityRating: newRevisionData.quality,
+      comments: newRevisionData.comments,
     };
-    setRevisions((prev) => [newRevision, ...prev]);
+    addDocumentNonBlocking(revisionsQuery, newLog);
     setIsFormOpen(false);
   };
 
   const deleteRevision = (id: string) => {
-    setRevisions((prev) => prev.filter((r) => r.id !== id));
+    if (!revisionsQuery) return;
+    const docRef = doc(revisionsQuery, id);
+    deleteDocumentNonBlocking(docRef);
   };
+
+  if (isUserLoading || isLoadingRevisions) {
+    return (
+      <div className="flex min-h-screen w-full flex-col items-center justify-center">
+        <Loader2 className="h-16 w-16 animate-spin text-primary" />
+        <p className="mt-4 text-lg">Loading your Hifz journey...</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Login />;
+  }
 
   return (
     <div className="flex min-h-screen w-full flex-col">
