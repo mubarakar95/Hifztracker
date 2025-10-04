@@ -5,17 +5,17 @@ import { BookOpen } from "lucide-react";
 import { useFirebase } from "@/firebase";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { nonBlockingSignInWithPopup } from "@/firebase/non-blocking-login";
 
 export function Login() {
   const { auth } = useFirebase();
 
-  const handleGoogleSignIn = async () => {
+  const handleGoogleSignIn = () => {
     const provider = new GoogleAuthProvider();
-    try {
-      await signInWithPopup(auth, provider);
-    } catch (error) {
+    // Use non-blocking sign-in to avoid issues with popup closing
+    nonBlockingSignInWithPopup(auth, provider).catch(error => {
       console.error("Error signing in with Google: ", error);
-    }
+    });
   };
 
   return (

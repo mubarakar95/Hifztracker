@@ -1,10 +1,11 @@
 'use client';
 import {
-  Auth, // Import Auth type for type hinting
+  Auth,
   signInAnonymously,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  // Assume getAuth and app are initialized elsewhere
+  signInWithPopup,
+  AuthProvider,
 } from 'firebase/auth';
 
 /** Initiate anonymous sign-in (non-blocking). */
@@ -26,4 +27,12 @@ export function initiateEmailSignIn(authInstance: Auth, email: string, password:
   // CRITICAL: Call signInWithEmailAndPassword directly. Do NOT use 'await signInWithEmailAndPassword(...)'.
   signInWithEmailAndPassword(authInstance, email, password);
   // Code continues immediately. Auth state change is handled by onAuthStateChanged listener.
+}
+
+/**
+ * Initiates a sign-in with a popup.
+ * Does NOT await the operation. Auth state changes are handled by onAuthStateChanged listener.
+ */
+export function nonBlockingSignInWithPopup(auth: Auth, provider: AuthProvider) {
+  return signInWithPopup(auth, provider);
 }
