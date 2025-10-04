@@ -8,7 +8,6 @@ import {
   query,
   where,
   doc,
-  serverTimestamp,
   Timestamp,
 } from "firebase/firestore";
 
@@ -72,7 +71,7 @@ export default function Home() {
     const newLog: Omit<RevisionLog, "id"> = {
       userId: user.uid,
       juzPart: parseInt(newRevisionData.juzPart, 10),
-      revisionDate: serverTimestamp(),
+      revisionDate: Timestamp.fromDate(newRevisionData.date),
       qualityRating: newRevisionData.quality,
       comments: newRevisionData.comments,
     };
