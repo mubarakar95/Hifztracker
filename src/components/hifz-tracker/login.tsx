@@ -1,3 +1,4 @@
+
 "use client";
 
 import { GoogleAuthProvider, signInWithRedirect, getRedirectResult } from "firebase/auth";
@@ -9,42 +10,46 @@ import { useEffect, useState } from "react";
 
 export function Login() {
   const { auth } = useFirebase();
-  const [isSigningIn, setIsSigningIn] = useState(false);
+  const [isSigningIn, setIsSigningIn] = useState(true); // Default to true to handle redirect
 
   useEffect(() => {
-    const checkRedirect = async () => {
-      if (!auth) return;
+    if (!auth) {
+      setIsSigningIn(false);
+      return;
+    };
+
+    const checkRedirectResult = async () => {
       try {
         const result = await getRedirectResult(auth);
-        if (result) {
-          // User has just signed in. The onAuthStateChanged listener
-          // in FirebaseProvider will handle the user state update.
-          // We can just show a loading indicator briefly.
-          setIsSigningIn(false);
-        }
+        // If result is not null, a redirect has just completed.
+        // The onAuthStateChanged listener will handle the user state update.
+        // We just need to manage the loading UI state here.
       } catch (error) {
-        console.error("Error during redirect sign in: ", error);
+        console.error("Error processing redirect result:", error);
+      } finally {
+        // Whether there was a redirect or not, the check is complete.
+        // We can now allow user interaction.
         setIsSigningIn(false);
       }
     };
+    
+    checkRedirectResult();
 
-    setIsSigningIn(true);
-    checkRedirect().finally(() => setIsSigningIn(false));
   }, [auth]);
 
   const handleGoogleSignIn = () => {
-    if (!auth) return;
+    if (!auth || isSigningIn) return;
     const provider = new GoogleAuthProvider();
-    setIsSigningIn(true);
+    setIsSigningIn(true); // Show loader immediately
     signInWithRedirect(auth, provider).catch(error => {
        console.error("Error initiating redirect sign in: ", error);
-       setIsSigningIn(false);
+       setIsSigningIn(false); // On error, allow user to try again
     });
   };
   
   if (isSigningIn) {
       return (
-      <div className="flex min-h-screen w-full flex-col items-center justify-center">
+      <div className="flex min-h-screen w-full flex-col items-center justify-center bg-background">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />
         <p className="mt-4 text-lg">Signing in...</p>
       </div>
