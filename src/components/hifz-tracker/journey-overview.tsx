@@ -2,9 +2,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { format } from "date-fns";
-import { cn } from "@/lib/utils";
-import type { Revision, RevisionQuality } from "@/lib/types";
+import { format, subDays } from "date-fns";
+import type { Revision } from "@/lib/types";
 import {
   Card,
   CardContent,
@@ -13,11 +12,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -32,6 +32,14 @@ type JourneyOverviewProps = {
   revisions: Revision[];
 };
 
+const timeFrameOptions = [
+  { value: "7", label: "Last 7 Days" },
+  { value: "14", label: "Last 14 Days" },
+  { value: "30", label: "Last 30 Days" },
+  { value: "60", label: "Last 60 Days" },
+  { value: "all", label: "All Time" },
+];
+
 export function JourneyOverview({ revisions }: JourneyOverviewProps) {
   const isMobile = useIsMobile();
   const [selectedPart, setSelectedPart] = useState<{
@@ -39,17 +47,27 @@ export function JourneyOverview({ revisions }: JourneyOverviewProps) {
     part: number;
     label: string;
   } | null>(null);
+  const [timeFrame, setTimeFrame] = useState<string>("30");
+
+  const filteredRevisions = useMemo(() => {
+    if (timeFrame === "all") {
+      return revisions;
+    }
+    const days = parseInt(timeFrame, 10);
+    const cutOffDate = subDays(new Date(), days);
+    return revisions.filter((r) => r.date >= cutOffDate);
+  }, [revisions, timeFrame]);
 
   const revisionsByJuzPart = useMemo(() => {
     const map = new Map<string, Revision>();
-    revisions.forEach((revision) => {
+    filteredRevisions.forEach((revision) => {
       const existing = map.get(revision.juzPart);
       if (!existing || revision.date > existing.date) {
         map.set(revision.juzPart, revision);
       }
     });
     return map;
-  }, [revisions]);
+  }, [filteredRevisions]);
 
   const selectedRevision = useMemo(() => {
     if (!selectedPart) return null;
@@ -66,14 +84,32 @@ export function JourneyOverview({ revisions }: JourneyOverviewProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Journey Overview</CardTitle>
-        <CardDescription>
-          A visual summary of your revision progress. Each circle is a Juz, and
-          each quadrant is 5 pages.{" "}
-          {isMobile
-            ? "Tap a quadrant for details."
-            : "Hover over a quadrant for details."}
-        </CardDescription>
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <CardTitle>Journey Overview</CardTitle>
+            <CardDescription className="mt-1.5">
+              A visual summary of your revision progress. Each circle is a Juz,
+              and each quadrant is 5 pages.{" "}
+              {isMobile
+                ? "Tap a quadrant for details."
+                : "Hover over a quadrant for details."}
+            </CardDescription>
+          </div>
+          <div className="mt-4 sm:mt-0 sm:ml-4">
+            <Select value={timeFrame} onValueChange={setTimeFrame}>
+              <SelectTrigger className="w-full sm:w-[180px]">
+                <SelectValue placeholder="Select time frame" />
+              </SelectTrigger>
+              <SelectContent>
+                {timeFrameOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         <TooltipProvider>
@@ -98,13 +134,13 @@ export function JourneyOverview({ revisions }: JourneyOverviewProps) {
                   <DialogTitle>{selectedPart.label}</DialogTitle>
                   {selectedRevision ? (
                     <DialogDescription>
-                      Last revised:{" "}
+                      Last revised on:{" "}
                       <strong>
                         {format(selectedRevision.date, "PPP")}
                       </strong>
                     </DialogDescription>
                   ) : (
-                    <DialogDescription>Not yet revised.</DialogDescription>
+                     <DialogDescription>Not yet revised in this period.</DialogDescription>
                   )}
                   {selectedRevision && (
                     <div className="space-y-1 pt-2 text-sm text-muted-foreground">
