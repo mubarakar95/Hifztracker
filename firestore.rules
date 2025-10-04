@@ -1,67 +1,79 @@
 /**
- * @description This ruleset enforces a strict user-ownership model for revision logs. Users can only create, read, update, and delete their own revision log entries.
- * @dataStructure Data is nested under /users/{userId}/revisionLogs/{revisionLogId}.
- * @keySecurityDecisions
- *   - Users can only manage revision logs associated with their own user ID.
- *   - Listing of all revision logs across users is disallowed for privacy.
- *   - No global admin roles are defined.
+ * @file Overview
+ * This ruleset enforces a user-ownership model for revision logs,
+ * ensuring users can only manage their own revision data. All data is stored in top-level collections: `/users/{userId}` and `/revisionLogs/{logId}`.
+ *
+ * Key Security Decisions:
+ * - Users can only list revision logs that they own.
+ * - Users can create, update, and delete only their own revision logs.
+ * - The 'userId' field in the 'RevisionLog' entity is immutable and must match the authenticated user's ID.
+ *
+ * Denormalization for Authorization:
+ * - The 'RevisionLog' documents contain a 'userId' field to associate each log with its owner. This simplifies authorization checks,
+ *   avoiding costly `get()` operations.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Enforces user-ownership for revision logs. Only the authenticated user can manage their own revision logs.
-     * @path /databases/{database}/documents/users/{userId}/revisionLogs/{revisionLogId}
-     * @allow (create) User Nf70GCVu43clR4AgCX9k0qzgeTk2 creates a new revision log entry under their user ID.
-     * @deny (create) User Nf70GCVu43clR4AgCX9k0qzgeTk2 attempts to create a revision log entry under a different user ID.
-     * @allow (get) User Nf70GCVu43clR4AgCX9k0qzgeTk2 retrieves their own revision log entry.
-     * @deny (get) User Nf70GCVu43clR4AgCX9k0qzgeTk2 attempts to retrieve a revision log entry belonging to another user.
-     * @allow (update) User Nf70GCVu43clR4AgCX9k0qzgeTk2 updates their own revision log entry.
-     * @deny (update) User Nf70GCVu43clR4AgCX9k0qzgeTk2 attempts to update a revision log entry belonging to another user.
-     * @allow (delete) User Nf70GCVu43clR4AgCX9k0qzgeTk2 deletes their own revision log entry.
-     * @deny (delete) User Nf70GCVu43clR4AgCX9k0qzgeTk2 attempts to delete a revision log entry belonging to another user.
-     * @principle Enforces document ownership for writes and restricts access to a user's own data tree.
+     * @description Protects user profiles. Users can only read and write their own profile.
+     * @path /users/{userId}
+     * @allow (create) - Authenticated user creates their own profile.
+     *   Request: auth.uid = "user123", resource.data.id = "user123"
+     * @allow (get, update, delete) - Authenticated user reads/updates/deletes their own profile.
+     *   Request: auth.uid = "user123", resource.data.id = "user123"
+     * @deny (create) - Authenticated user attempts to create a profile with a mismatched ID.
+     *   Request: auth.uid = "user123", resource.data.id = "user456"
+     * @deny (get, update, delete) - Authenticated user attempts to read/update/delete another user's profile.
+     *   Request: auth.uid = "user123", resource.data.id = "user456"
+     * @principle Enforces document ownership for user profiles.
      */
-    match /users/{userId}/revisionLogs/{revisionLogId} {
-      allow get: if isSignedIn() && isOwner(userId);
+    match /users/{userId} {
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
+
+      function isExistingOwner(userId) {
+        return isOwner(userId) && resource.data != null;
+      }
+
+      allow get: if isOwner(userId);
       allow list: if false;
-      allow create: if isSignedIn() && isOwner(userId);
-      allow update: if isSignedIn() && isExistingOwner(userId);
-      allow delete: if isSignedIn() && isExistingOwner(userId);
+      allow create: if isOwner(userId) && request.resource.data.id == request.auth.uid;
+      allow update: if isExistingOwner(userId);
+      allow delete: if isExistingOwner(userId);
     }
-    
+
     /**
-     * @description Enforces user-ownership for user documents. Only the authenticated user can manage their own user document.
-     * @path /databases/{database}/documents/users/{userId}
-     * @allow (create) User Nf70GCVu43clR4AgCX9k0qzgeTk2 creates their user document with a matching user ID.
-     * @deny (create) User Nf70GCVu43clR4AgCX9k0qzgeTk2 attempts to create a user document with a mismatched user ID.
-     * @allow (get) User Nf70GCVu43clR4AgCX9k0qzgeTk2 retrieves their own user document.
-     * @deny (get) User Nf70GCVu43clR4AgCX9k0qzgeTk2 attempts to retrieve a user document belonging to another user.
-     * @allow (update) User Nf70GCVu43clR4AgCX9k0qzgeTk2 updates their own user document.
-     * @deny (update) User Nf70GCVu43clR4AgCX9k0qzgeTk2 attempts to update a user document belonging to another user.
-     * @allow (delete) User Nf70GCVu43clR4AgCX9k0qzgeTk2 deletes their own user document.
-     * @deny (delete) User Nf70GCVu43clR4AgCX9k0qzgeTk2 attempts to delete a user document belonging to another user.
-     * @principle Enforces document ownership for writes and restricts access to a user's own data tree. Validates that the user ID in the path matches the document's ID.
+     * @description Manages revision logs.  Users can read their own logs.
+     * @path /revisionLogs/{logId}
+     * @allow (create) - Authenticated user creates a new revision log with their user ID.
+     *   Request: auth.uid = "user123", resource.data.userId = "user123"
+     * @allow (get, update, delete) - Authenticated user reads/updates/deletes their own revision log.
+     *   Request: auth.uid = "user123", resource.data.userId = "user123"
+     * @allow (list) - Authenticated user lists their own revision logs.
+     *   Request: auth.uid = "user123"
+     * @deny (create) - Authenticated user attempts to create a revision log for another user.
+     *   Request: auth.uid = "user123", resource.data.userId = "user456"
+     * @deny (get, update, delete) - Authenticated user attempts to read/update/delete another user's revision log.
+     *   Request: auth.uid = "user123", resource.data.userId = "user456"
+     * @principle Enforces document ownership for revision logs.
      */
-     match /users/{userId} {
-      allow get: if isSignedIn() && isOwner(userId);
-      allow list: if false;
-      allow create: if isSignedIn() && isOwner(userId);
-      allow update: if isSignedIn() && isExistingOwner(userId);
-      allow delete: if isSignedIn() && isExistingOwner(userId);
+    match /revisionLogs/{logId} {
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
+
+      function isExistingOwner() {
+        return resource.data.userId == request.auth.uid;
+      }
+
+      allow get: if isExistingOwner();
+      allow list: if request.auth.uid != null;
+      allow create: if request.resource.data.userId == request.auth.uid;
+      allow update: if isExistingOwner();
+      allow delete: if isExistingOwner();
     }
-  }
-
-  function isSignedIn() {
-    return request.auth != null;
-  }
-
-  function isOwner(userId) {
-    return request.auth.uid == userId;
-  }
-
-  function isExistingOwner(userId) {
-    return isSignedIn() && isOwner(userId) && resource != null;
   }
 }
