@@ -114,22 +114,24 @@ export function JourneyOverview({ revisions }: JourneyOverviewProps) {
                 <DialogTitle>{selectedJuz?.label}</DialogTitle>
                 <DialogDescription>
                   {selectedRevision ? (
-                    <div className="space-y-1 pt-2">
+                    <span>
+                      Last revised:{" "}
+                      <strong>
+                        {format(selectedRevision.date, "PPP")}
+                      </strong>
+                    </span>
+                  ) : (
+                    <span>Not yet revised.</span>
+                  )}
+                </DialogDescription>
+                  {selectedRevision && (
+                    <div className="space-y-1 pt-2 text-sm text-muted-foreground">
                        <div>
-                        Last revised:{" "}
-                        <strong>
-                          {format(selectedRevision.date, "PPP")}
-                        </strong>
-                      </div>
-                      <div>
                         Quality: <strong>{selectedRevision.quality}</strong>
                       </div>
                       {selectedRevision.comments && <div>Comments: {selectedRevision.comments}</div>}
                     </div>
-                  ) : (
-                    <div className="pt-2">Not yet revised.</div>
                   )}
-                </DialogDescription>
               </DialogHeader>
             </DialogContent>
           </Dialog>
