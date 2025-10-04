@@ -79,23 +79,5 @@
     "providers": [
       "google.com"
     ]
-  },
-  "firestore": {
-    "collections": [
-      {
-        "name": "users",
-        "schema": {
-          "$ref": "#/entities/User"
-        },
-        "subcollections": [
-          {
-            "name": "revisionLogs",
-            "schema": {
-              "$ref": "#/entities/RevisionLog"
-            }
-          }
-        ]
-      }
-    ]
   }
 }
