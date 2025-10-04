@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { PlusCircle, Loader2 } from "lucide-react";
 import {
   collection,
@@ -53,6 +53,7 @@ export default function Home() {
   const revisions: Revision[] = useMemoFirebase(() => {
     if (!revisionLogs) return [];
     return revisionLogs
+      .filter((log) => log.juzPart !== undefined && log.juzPart !== null) // Filter out logs without juzPart
       .map((log) => {
         // Handle pending server timestamps, which are null initially.
         const revisionDate = log.revisionDate as Timestamp | null;
