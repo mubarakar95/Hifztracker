@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { PlusCircle, Loader2 } from "lucide-react";
 import {
   collection,
@@ -9,7 +9,7 @@ import {
   Timestamp,
 } from "firebase/firestore";
 
-import { useCollection, useFirebase } from "@/firebase";
+import { useCollection, useFirebase, useMemoFirebase } from "@/firebase";
 import {
   addDocumentNonBlocking,
   deleteDocumentNonBlocking,
@@ -35,7 +35,7 @@ export default function Home() {
   const { user, isUserLoading, firestore } = useFirebase();
   const [isFormOpen, setIsFormOpen] = useState(false);
 
-  const revisionsQuery = useMemo(() => {
+  const revisionsQuery = useMemoFirebase(() => {
     if (!user || !firestore) return null;
     return collection(firestore, "users", user.uid, "revisionLogs");
   }, [user, firestore]);
@@ -43,7 +43,7 @@ export default function Home() {
   const { data: revisionLogs, isLoading: isLoadingRevisions } =
     useCollection<RevisionLog>(revisionsQuery);
 
-  const revisions: Revision[] = useMemo(() => {
+  const revisions: Revision[] = useMemoFirebase(() => {
     if (!revisionLogs) return [];
     return revisionLogs
       .map((log) => ({
