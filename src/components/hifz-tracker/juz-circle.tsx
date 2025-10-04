@@ -118,7 +118,7 @@ export const JuzCircle = ({
         <span className="text-xs font-medium text-muted-foreground">
           Juz {juzNumber}
         </span>
-        <span className="block text-[10px] text-muted-foreground truncate">
+        <span className="block text-[10px] text-muted-foreground overflow-hidden whitespace-nowrap">
             {juzArabicNames.get(juzNumber)}
         </span>
       </div>

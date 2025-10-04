@@ -161,7 +161,7 @@ export function CustomRevisionCalendar({ revisions }: RevisionCalendarProps) {
                       >
                          <div className="flex flex-col items-center">
                             <span>Juz {juz}</span>
-                            <span className="text-[10px] font-normal text-muted-foreground">{juzArabicNames.get(juz)}</span>
+                            <span className="block text-[10px] font-normal text-muted-foreground whitespace-nowrap overflow-hidden">{juzArabicNames.get(juz)}</span>
                         </div>
                       </th>
                     ))}
