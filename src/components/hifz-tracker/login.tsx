@@ -1,7 +1,8 @@
 
 "use client";
 
-import { GoogleAuthProvider, signInWithRedirect } from "firebase/auth";
+import { useEffect, useState } from "react";
+import { GoogleAuthProvider, signInWithRedirect, getRedirectResult } from "firebase/auth";
 import { BookOpen, Loader2 } from "lucide-react";
 import { useFirebase } from "@/firebase";
 import { Button } from "@/components/ui/button";
@@ -9,31 +10,49 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 
 export function Login() {
   const { auth, isAuthReady } = useFirebase();
+  const [isSigningIn, setIsSigningIn] = useState(true);
+
+  useEffect(() => {
+    if (isAuthReady && auth) {
+      getRedirectResult(auth)
+        .then((result) => {
+          // If result is null, it means the user just landed on the page without
+          // coming from a redirect. If there is a result, the onAuthStateChanged
+          // listener in the provider will handle the user state update.
+          // In either case, we can stop showing the signing-in loader.
+        })
+        .catch((error) => {
+          console.error("Error getting redirect result: ", error);
+        })
+        .finally(() => {
+          setIsSigningIn(false);
+        });
+    } else if (!isAuthReady) {
+        // Still waiting for auth to be ready, keep showing loader
+        setIsSigningIn(true);
+    } else {
+        // Auth is ready, but no auth object, so not signing in.
+        setIsSigningIn(false);
+    }
+  }, [auth, isAuthReady]);
 
   const handleGoogleSignIn = () => {
     if (!auth) return;
     const provider = new GoogleAuthProvider();
-    // We initiate the redirect. After the user signs in with Google, they'll be
-    // sent back to the app, and the onAuthStateChanged listener in our FirebaseProvider
-    // will handle the user state update.
     signInWithRedirect(auth, provider).catch(error => {
        console.error("Error initiating redirect sign in: ", error);
     });
   };
-  
-  // Show a loading screen while the initial auth check is happening.
-  // The isAuthReady flag from the provider is the source of truth.
-  if (!isAuthReady) {
-      return (
+
+  if (!isAuthReady || isSigningIn) {
+    return (
       <div className="flex min-h-screen w-full flex-col items-center justify-center bg-background">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />
-        <p className="mt-4 text-lg">Loading...</p>
+        <p className="mt-4 text-lg">Signing in...</p>
       </div>
     );
   }
 
-  // If auth is ready and we're on this page, it means there's no user.
-  // Show the login button.
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="w-full max-w-sm">

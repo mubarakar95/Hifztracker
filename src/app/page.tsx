@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { PlusCircle, Loader2 } from "lucide-react";
 import {
   collection,
@@ -85,9 +85,25 @@ export default function Home() {
     deleteDocumentNonBlocking(docRef);
   };
 
-  // Wait until Firebase has checked auth status and we have loaded the initial revisions
-  if (!isAuthReady || (user && isLoadingRevisions)) {
+  // Wait until Firebase has confirmed the initial auth state.
+  // The Login component itself will show a "Signing in..." message if a redirect is in progress.
+  if (!isAuthReady) {
     return (
+      <div className="flex min-h-screen w-full flex-col items-center justify-center">
+        <Loader2 className="h-16 w-16 animate-spin text-primary" />
+        <p className="mt-4 text-lg">Loading Hifz Tracker...</p>
+      </div>
+    );
+  }
+
+  // If auth is ready and there's no user, show the login page.
+  if (!user) {
+    return <Login />;
+  }
+
+  // If we have a user but are still waiting for their data, show a loading screen.
+  if (isLoadingRevisions) {
+     return (
       <div className="flex min-h-screen w-full flex-col items-center justify-center">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />
         <p className="mt-4 text-lg">Loading your Hifz journey...</p>
@@ -95,12 +111,7 @@ export default function Home() {
     );
   }
 
-  // If auth is ready and there's no user, show the login page
-  if (!user) {
-    return <Login />;
-  }
-
-  // If auth is ready and we have a user, show the dashboard
+  // If auth is ready and we have a user and their data, show the dashboard.
   return (
     <div className="flex min-h-screen w-full flex-col">
       <AppHeader revisions={revisions} />
