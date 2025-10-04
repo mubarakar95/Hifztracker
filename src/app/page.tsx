@@ -5,6 +5,8 @@ import { useState } from "react";
 import { PlusCircle, Loader2 } from "lucide-react";
 import {
   collection,
+  query,
+  where,
   doc,
   serverTimestamp,
   Timestamp,
@@ -38,7 +40,11 @@ export default function Home() {
 
   const revisionsQuery = useMemoFirebase(() => {
     if (!user || !firestore) return null;
-    return collection(firestore, "users", user.uid, "revisionLogs");
+    // Query the top-level revisionLogs collection for logs matching the current user's ID
+    return query(
+      collection(firestore, "revisionLogs"),
+      where("userId", "==", user.uid)
+    );
   }, [user, firestore]);
 
   const { data: revisionLogs, isLoading: isLoadingRevisions } =
@@ -61,21 +67,23 @@ export default function Home() {
       .sort((a, b) => b.date.getTime() - a.date.getTime());
   }, [revisionLogs]);
 
-  const addRevision = (newRevisionData: Omit<Revision, "id">) => {
-    if (!revisionsQuery) return;
-    const newLog: Omit<RevisionLog, "id" | "userId"> = {
+  const addRevision = (newRevisionData: Omit<Revision, "id" | "userId">) => {
+    if (!user || !firestore) return;
+    const revisionLogsCollection = collection(firestore, "revisionLogs");
+    const newLog: Omit<RevisionLog, "id"> = {
+      userId: user.uid, // Add userId to the log
       halfJuz: parseInt(newRevisionData.halfJuz, 10),
       revisionDate: serverTimestamp(),
       qualityRating: newRevisionData.quality,
       comments: newRevisionData.comments,
     };
-    addDocumentNonBlocking(revisionsQuery, newLog);
+    addDocumentNonBlocking(revisionLogsCollection, newLog);
     setIsFormOpen(false);
   };
 
   const deleteRevision = (id: string) => {
-    if (!revisionsQuery) return;
-    const docRef = doc(revisionsQuery, id);
+    if (!firestore) return;
+    const docRef = doc(firestore, "revisionLogs", id);
     deleteDocumentNonBlocking(docRef);
   };
 

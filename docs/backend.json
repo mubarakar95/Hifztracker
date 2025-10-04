@@ -79,5 +79,19 @@
     "providers": [
       "google.com"
     ]
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": {
+        "$ref": "#/entities/User"
+      },
+      "description": "Stores user profile information."
+    },
+    "/revisionLogs/{logId}": {
+      "schema": {
+        "$ref": "#/entities/RevisionLog"
+      },
+      "description": "Stores all revision logs from all users."
+    }
   }
 }

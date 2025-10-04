@@ -1,97 +1,55 @@
 /**
- * @file Firestore Security Rules
- * @description This ruleset enforces a strict user-ownership model for revision logs, ensuring that only the authenticated user can create, modify, or delete their own revision log entries.
- *
- * Data Structure:
- * All revision logs are nested under /users/{userId}/revisionLogs/{revisionLogId}.
- *
- * Key Security Decisions:
- * - Users can only manage revision logs associated with their own user ID.
- * - The rules do not enforce a specific data schema beyond ownership.
- * - Read access is restricted to the owner.
- *
- * Denormalization for Authorization:
- * The `userId` is denormalized into the `RevisionLog` document to enable direct ownership checks without additional reads.
+ * @description This ruleset enforces a strict user-ownership model for revision logs. Users can only create, read, update, and delete their own revision log entries.
+ * @dataStructure Data is nested under /users/{userId}/revisionLogs/{revisionLogId}.
+ * @keySecurityDecisions
+ *   - Users can only manage revision logs associated with their own user ID.
+ *   - Listing of all revision logs across users is disallowed for privacy.
+ *   - No global admin roles are defined.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Enforces user-ownership for revision logs, allowing only the authenticated user to manage their own entries.
+     * @description Enforces user-ownership for revision logs. Only the authenticated user can manage their own revision logs.
      * @path /databases/{database}/documents/users/{userId}/revisionLogs/{revisionLogId}
-     * @allow (create) - Authenticated user Nf70GCVu43clR4AgCX9k0qzgeTk2 can create a revision log under their own user ID.
-     *   Request:
-     *   - auth.uid: Nf70GCVu43clR4AgCX9k0qzgeTk2
-     *   - resource.data.userId: Nf70GCVu43clR4AgCX9k0qzgeTk2
-     * @allow (update) - Authenticated user Nf70GCVu43clR4AgCX9k0qzgeTk2 can update a revision log under their own user ID.
-     *   Precondition: Revision Log exists.
-     *   Request:
-     *   - auth.uid: Nf70GCVu43clR4AgCX9k0qzgeTk2
-     *   - resource.data.userId: Nf70GCVu43clR4AgCX9k0qzgeTk2
-     *   - resource.data (merged state) has userId equal to the existing resource.data.userId
-     * @allow (delete) - Authenticated user Nf70GCVu43clR4AgCX9k0qzgeTk2 can delete a revision log under their own user ID.
-     *   Precondition: Revision Log exists.
-     *   Request:
-     *   - auth.uid: Nf70GCVu43clR4AgCX9k0qzgeTk2
-     *   - resource.data.userId: Nf70GCVu43clR4AgCX9k0qzgeTk2
-     * @deny (create) - Authenticated user Nf70GCVu43clR4AgCX9k0qzgeTk2 cannot create a revision log under a different user ID.
-     *   Request:
-     *   - auth.uid: Nf70GCVu43clR4AgCX9k0qzgeTk2
-     *   - resource.data.userId: someOtherUserId
-     * @deny (update) - Authenticated user Nf70GCVu43clR4AgCX9k0qzgeTk2 cannot update a revision log under a different user ID.
-     *   Request:
-     *   - auth.uid: Nf70GCVu43clR4AgCX9k0qzgeTk2
-     *   - resource.data.userId: someOtherUserId
-     * @deny (delete) - Authenticated user Nf70GCVu43clR4AgCX9k0qzgeTk2 cannot delete a revision log under a different user ID.
-     *   Request:
-     *   - auth.uid: Nf70GCVu43clR4AgCX9k0qzgeTk2
-     *   - resource.data.userId: someOtherUserId
-     * @principle Enforces document ownership for writes, restricts access to a user's own data tree.
+     * @allow (create) User Nf70GCVu43clR4AgCX9k0qzgeTk2 creates a new revision log entry under their user ID.
+     * @deny (create) User Nf70GCVu43clR4AgCX9k0qzgeTk2 attempts to create a revision log entry under a different user ID.
+     * @allow (get) User Nf70GCVu43clR4AgCX9k0qzgeTk2 retrieves their own revision log entry.
+     * @deny (get) User Nf70GCVu43clR4AgCX9k0qzgeTk2 attempts to retrieve a revision log entry belonging to another user.
+     * @allow (update) User Nf70GCVu43clR4AgCX9k0qzgeTk2 updates their own revision log entry.
+     * @deny (update) User Nf70GCVu43clR4AgCX9k0qzgeTk2 attempts to update a revision log entry belonging to another user.
+     * @allow (delete) User Nf70GCVu43clR4AgCX9k0qzgeTk2 deletes their own revision log entry.
+     * @deny (delete) User Nf70GCVu43clR4AgCX9k0qzgeTk2 attempts to delete a revision log entry belonging to another user.
+     * @principle Enforces document ownership for writes and restricts access to a user's own data tree.
      */
     match /users/{userId}/revisionLogs/{revisionLogId} {
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-      allow create: if isSignedIn() && request.resource.data.userId == userId;
-      allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
-      allow delete: if isExistingOwner(userId);
-    }
-
-    /**
-     * @description Enforces user-ownership for user documents, allowing only the authenticated user to manage their own profile data.
-     * @path /databases/{database}/documents/users/{userId}
-     * @allow (create) - Authenticated user Nf70GCVu43clR4AgCX9k0qzgeTk2 can create their user document with a matching user ID.
-     *   Request:
-     *   - auth.uid: Nf70GCVu43clR4AgCX9k0qzgeTk2
-     *   - resource.id: Nf70GCVu43clR4AgCX9k0qzgeTk2
-     * @allow (update) - Authenticated user Nf70GCVu43clR4AgCX9k0qzgeTk2 can update their own user document.
-     *   Precondition: User document exists.
-     *   Request:
-     *   - auth.uid: Nf70GCVu43clR4AgCX9k0qzgeTk2
-     *   - resource.data.id: Nf70GCVu43clR4AgCX9k0qzgeTk2 (and unchanged from existing resource.data.id)
-     * @allow (delete) - Authenticated user Nf70GCVu43clR4AgCX9k0qzgeTk2 can delete their own user document.
-     *   Precondition: User document exists.
-     *   Request:
-     *   - auth.uid: Nf70GCVu43clR4AgCX9k0qzgeTk2
-     * @deny (create) - Authenticated user Nf70GCVu43clR4AgCX9k0qzgeTk2 cannot create a user document with a mismatched user ID.
-     *   Request:
-     *   - auth.uid: Nf70GCVu43clR4AgCX9k0qzgeTk2
-     *   - resource.id: someOtherUserId
-     * @deny (update) - Authenticated user Nf70GCVu43clR4AgCX9k0qzgeTk2 cannot update someone else's user document.
-     *   Request:
-     *   - auth.uid: Nf70GCVu43clR4AgCX9k0qzgeTk2
-     *   - resource.data.id: someOtherUserId
-     * @deny (delete) - Authenticated user Nf70GCVu43clR4AgCX9k0qzgeTk2 cannot delete someone else's user document.
-     *   Request:
-     *   - auth.uid: Nf70GCVu43clR4AgCX9k0qzgeTk2
-     * @principle Enforces document ownership for writes, restricts access to a user's own data tree, validates relational integrity between documents.
-     */
-    match /users/{userId} {
-      allow get: if isOwner(userId);
+      allow get: if isSignedIn() && isOwner(userId);
       allow list: if false;
       allow create: if isSignedIn() && isOwner(userId);
-      allow update: if isExistingOwner(userId) && resource.data.id == resource.data.id;
-      allow delete: if isExistingOwner(userId);
+      allow update: if isSignedIn() && isExistingOwner(userId);
+      allow delete: if isSignedIn() && isExistingOwner(userId);
+    }
+    
+    /**
+     * @description Enforces user-ownership for user documents. Only the authenticated user can manage their own user document.
+     * @path /databases/{database}/documents/users/{userId}
+     * @allow (create) User Nf70GCVu43clR4AgCX9k0qzgeTk2 creates their user document with a matching user ID.
+     * @deny (create) User Nf70GCVu43clR4AgCX9k0qzgeTk2 attempts to create a user document with a mismatched user ID.
+     * @allow (get) User Nf70GCVu43clR4AgCX9k0qzgeTk2 retrieves their own user document.
+     * @deny (get) User Nf70GCVu43clR4AgCX9k0qzgeTk2 attempts to retrieve a user document belonging to another user.
+     * @allow (update) User Nf70GCVu43clR4AgCX9k0qzgeTk2 updates their own user document.
+     * @deny (update) User Nf70GCVu43clR4AgCX9k0qzgeTk2 attempts to update a user document belonging to another user.
+     * @allow (delete) User Nf70GCVu43clR4AgCX9k0qzgeTk2 deletes their own user document.
+     * @deny (delete) User Nf70GCVu43clR4AgCX9k0qzgeTk2 attempts to delete a user document belonging to another user.
+     * @principle Enforces document ownership for writes and restricts access to a user's own data tree. Validates that the user ID in the path matches the document's ID.
+     */
+     match /users/{userId} {
+      allow get: if isSignedIn() && isOwner(userId);
+      allow list: if false;
+      allow create: if isSignedIn() && isOwner(userId);
+      allow update: if isSignedIn() && isExistingOwner(userId);
+      allow delete: if isSignedIn() && isExistingOwner(userId);
     }
   }
 
@@ -103,7 +61,7 @@ service cloud.firestore {
     return request.auth.uid == userId;
   }
 
-    function isExistingOwner(userId) {
-    return isOwner(userId) && resource != null;
+  function isExistingOwner(userId) {
+    return isSignedIn() && isOwner(userId) && resource != null;
   }
 }
