@@ -42,9 +42,45 @@ type RevisionsByDayJuz = {
 };
 
 const qualityColorMap: Record<RevisionQuality, string> = {
-  Excellent: "bg-primary",
-  Good: "bg-accent",
-  "Needs Improvement": "bg-destructive",
+  Excellent: "hsl(var(--primary))",
+  Good: "hsl(var(--accent))",
+  "Needs Improvement": "hsl(var(--destructive))",
+};
+const defaultColor = "hsl(var(--muted))";
+
+const MiniJuzCircle = ({ revisions }: { revisions: Revision[] }) => {
+  const parts: (Revision | undefined)[] = [
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+  ];
+  revisions.forEach((rev) => {
+    const partIndex = (parseInt(rev.juzPart, 10) - 1) % 4;
+    // Keep the best quality revision for each part
+    if (!parts[partIndex] || parts[partIndex]!.quality !== 'Excellent') {
+        parts[partIndex] = rev;
+    }
+  });
+
+  const getPath = (part: number) => {
+    return [
+      "M 50 50 L 50 0 A 50 50 0 0 1 100 50 Z", // Top-right
+      "M 50 50 L 100 50 A 50 50 0 0 1 50 100 Z", // Bottom-right
+      "M 50 50 L 50 100 A 50 50 0 0 1 0 50 Z", // Bottom-left
+      "M 50 50 L 0 50 A 50 50 0 0 1 50 0 Z", // Top-left
+    ][part - 1];
+  };
+
+  return (
+    <svg viewBox="0 0 100 100" className="h-6 w-6">
+      {parts.map((revision, index) => {
+        const color = revision ? qualityColorMap[revision.quality] : defaultColor;
+        const partNumber = index + 1;
+        return <path key={partNumber} d={getPath(partNumber)} fill={color} />;
+      })}
+    </svg>
+  );
 };
 
 export function CustomRevisionCalendar({ revisions }: RevisionCalendarProps) {
@@ -59,7 +95,7 @@ export function CustomRevisionCalendar({ revisions }: RevisionCalendarProps) {
 
     return filteredRevisions.reduce((acc, revision) => {
       const day = revision.date.getDate();
-      const juzNumber = Math.floor(parseInt(revision.juzPart, 10) / 4) + 1;
+      const juzNumber = Math.floor((parseInt(revision.juzPart, 10) -1) / 4) + 1;
 
       if (!acc[day]) {
         acc[day] = {};
@@ -94,7 +130,7 @@ export function CustomRevisionCalendar({ revisions }: RevisionCalendarProps) {
       <CardHeader>
         <CardTitle>Detailed Revision Calendar</CardTitle>
         <CardDescription>
-          A day-by-juz grid of your revision history for the month.
+          A day-by-juz grid of your revision history for the month. Each circle shows revised quarters of a Juz.
         </CardDescription>
         <div className="flex items-center justify-center space-x-4 pt-4">
           <Button variant="outline" size="icon" onClick={handlePrevMonth}>
@@ -139,14 +175,6 @@ export function CustomRevisionCalendar({ revisions }: RevisionCalendarProps) {
                       </td>
                       {allJuzs.map((juz) => {
                         const cellRevisions = revisionsByDayJuz[day]?.[juz];
-                        const bestQuality = cellRevisions?.reduce(
-                          (best, current) => {
-                            if (current.quality === "Excellent") return "Excellent";
-                            if (current.quality === "Good" && best !== "Excellent") return "Good";
-                            return best;
-                          },
-                          "Needs Improvement" as RevisionQuality
-                        );
                         return (
                           <td
                             key={juz}
@@ -155,13 +183,9 @@ export function CustomRevisionCalendar({ revisions }: RevisionCalendarProps) {
                             {cellRevisions ? (
                               <Tooltip delayDuration={0}>
                                 <TooltipTrigger asChild>
-                                  <div
-                                    className={cn(
-                                      "mx-auto h-6 w-6 rounded-md",
-                                      bestQuality &&
-                                        qualityColorMap[bestQuality]
-                                    )}
-                                  ></div>
+                                  <div className="flex items-center justify-center">
+                                    <MiniJuzCircle revisions={cellRevisions} />
+                                  </div>
                                 </TooltipTrigger>
                                 <TooltipContent>
                                   <p className="font-bold">
@@ -175,13 +199,13 @@ export function CustomRevisionCalendar({ revisions }: RevisionCalendarProps) {
                                     )} - Juz {juz}
                                   </p>
                                   <div className="mt-2 space-y-1">
-                                    {cellRevisions.map((rev) => (
+                                    {cellRevisions.sort((a,b) => parseInt(a.juzPart) - parseInt(b.juzPart)).map((rev) => (
                                       <Badge
                                         key={rev.id}
                                         variant="secondary"
                                         className="block"
                                       >
-                                        Part {parseInt(rev.juzPart) % 4 || 4} - {rev.quality}
+                                        Part {(parseInt(rev.juzPart) - 1) % 4 + 1} - {rev.quality}
                                       </Badge>
                                     ))}
                                   </div>
