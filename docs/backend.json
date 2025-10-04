@@ -1,0 +1,123 @@
+{
+  "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the Hifz Tracker application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the User entity."
+        },
+        "username": {
+          "type": "string",
+          "description": "The user's username."
+        },
+        "email": {
+          "type": "string",
+          "description": "The user's email address.",
+          "format": "email"
+        },
+        "registrationDate": {
+          "type": "string",
+          "description": "The date and time the user registered.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "username",
+        "email",
+        "registrationDate"
+      ]
+    },
+    "RevisionLog": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "RevisionLog",
+      "type": "object",
+      "description": "Represents a single revision log entry for a specific half juz.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the RevisionLog entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N RevisionLog)"
+        },
+        "halfJuz": {
+          "type": "number",
+          "description": "The number representing the half juz revised (1-60, where each juz is split in half)"
+        },
+        "revisionDate": {
+          "type": "string",
+          "description": "The date of the revision.",
+          "format": "date-time"
+        },
+        "qualityRating": {
+          "type": "number",
+          "description": "The user's rating of the revision quality (e.g., on a scale of 1-5)."
+        },
+        "comments": {
+          "type": "string",
+          "description": "Any comments or notes the user added for this revision."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "halfJuz",
+        "revisionDate",
+        "qualityRating"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user profile information.  Accessible only by the user themselves.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/revisionLogs/{revisionLogId}",
+        "definition": {
+          "entityName": "RevisionLog",
+          "schema": {
+            "$ref": "#/backend/entities/RevisionLog"
+          },
+          "description": "Stores revision log entries for a specific user.  Accessible only by the user themselves. Uses path-based ownership to enforce access control.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            },
+            {
+              "name": "revisionLogId",
+              "description": "The unique identifier of the revision log entry."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed to ensure Authorization Independence, DBAC, and QAPs. We leverage path-based ownership for `RevisionLog` entries, placing them under `/users/{userId}/revisionLogs/{revisionLogId}`. This eliminates the need for `get()` calls in security rules, simplifying access control and enabling atomic operations. Each user can only access their own revision logs.\n\nThis approach facilitates secure list operations (QAPs) because the rules can simply check if `request.auth.uid == userId` to grant access to the collection. We avoid custom claims (DBAC) and rely on `request.auth.uid` for authorization.\n\nThe design promotes structural segregation by keeping all revision log entries for a user within their dedicated collection, ensuring homogeneous security requirements for documents within each `/users/{userId}/revisionLogs` collection."
+  }
+}
