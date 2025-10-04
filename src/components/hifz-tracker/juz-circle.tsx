@@ -3,7 +3,7 @@
 
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import type { Revision, RevisionQuality } from "@/lib/types";
+import { juzArabicNames, type Revision, type RevisionQuality } from "@/lib/types";
 import {
   Tooltip,
   TooltipContent,
@@ -114,9 +114,14 @@ export const JuzCircle = ({
           );
         })}
       </svg>
-      <span className="mt-1 text-xs font-medium text-muted-foreground">
-        Juz {juzNumber}
-      </span>
+      <div className="mt-1 text-center">
+        <span className="text-xs font-medium text-muted-foreground">
+          Juz {juzNumber}
+        </span>
+        <span className="block text-[10px] text-muted-foreground">
+            {juzArabicNames.get(juzNumber)}
+        </span>
+      </div>
     </div>
   );
 };

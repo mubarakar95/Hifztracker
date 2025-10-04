@@ -13,7 +13,7 @@ import {
 } from "date-fns";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { Revision, RevisionQuality } from "@/lib/types";
+import { juzArabicNames, type Revision, type RevisionQuality } from "@/lib/types";
 import {
   Card,
   CardContent,
@@ -159,7 +159,10 @@ export function CustomRevisionCalendar({ revisions }: RevisionCalendarProps) {
                         key={juz}
                         className="min-w-[40px] p-2 text-center text-xs font-semibold"
                       >
-                        Juz {juz}
+                         <div className="flex flex-col items-center">
+                            <span>Juz {juz}</span>
+                            <span className="text-[10px] font-normal text-muted-foreground">{juzArabicNames.get(juz)}</span>
+                        </div>
                       </th>
                     ))}
                   </tr>
