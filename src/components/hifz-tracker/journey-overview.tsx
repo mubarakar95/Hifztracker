@@ -1,3 +1,4 @@
+
 import { useMemo, useState } from "react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -22,7 +23,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -114,19 +114,19 @@ export function JourneyOverview({ revisions }: JourneyOverviewProps) {
                 <DialogDescription>
                   {selectedRevision ? (
                     <div className="space-y-1 pt-2">
-                       <p>
+                       <div>
                         Last revised:{" "}
                         <strong>
                           {format(selectedRevision.date, "PPP")}
                         </strong>
-                      </p>
-                      <p>
+                      </div>
+                      <div>
                         Quality: <strong>{selectedRevision.quality}</strong>
-                      </p>
-                      {selectedRevision.comments && <p>Comments: {selectedRevision.comments}</p>}
+                      </div>
+                      {selectedRevision.comments && <div>Comments: {selectedRevision.comments}</div>}
                     </div>
                   ) : (
-                    <p className="pt-2">Not yet revised.</p>
+                    <div className="pt-2">Not yet revised.</div>
                   )}
                 </DialogDescription>
               </DialogHeader>
