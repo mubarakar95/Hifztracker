@@ -38,7 +38,7 @@ export default function Home() {
 
   return (
     <div className="flex min-h-screen w-full flex-col">
-      <AppHeader />
+      <AppHeader revisions={revisions} />
       <main className="flex flex-1 flex-col gap-8 p-4 md:p-8 lg:p-12">
         <div className="flex items-center justify-between">
           <h1 className="font-headline text-3xl font-bold tracking-tight">
