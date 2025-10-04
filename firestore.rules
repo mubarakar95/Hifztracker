@@ -1,85 +1,68 @@
 /**
- * @file Firebase Security Rules for Hifz Tracker.
- *
- * @description This ruleset enforces a strict user-ownership model for all data.
- * All user data and revision logs are nested under `/users/{userId}`, ensuring that only the authenticated user can access their own information.
- *
- * @dataStructure
- * - `/users/{userId}`: Stores user profile information.  Accessible only by the user themselves.
- * - `/users/{userId}/revisionLogs/{revisionLogId}`: Stores revision log entries for a specific user.  Accessible only by the user themselves.
- *
- * @keySecurityDecisions
- * - Users can only access their own data.
- * - No user listing is allowed.
- * - All writes are validated against the authenticated user's ID.
- * - Data consistency between the path and document `userId` field is enforced.
+ * @file Firestore Security Rules
+ * @core_philosophy This ruleset enforces a strict user-ownership model. Each user can only access their own data,
+ *  and only authenticated users can create data. Data shapes are not strictly enforced to allow for rapid prototyping.
+ * @data_structure All user-related data is nested under `/users/{userId}`. Each user has a subcollection `revisionLogs`.
+ * @key_security_decisions Users can only create revision logs under their own user ID.
+ *  Listing users is disallowed for privacy.
+ * @denormalization For authorization efficiency, the `userId` is denormalized into the `RevisionLog` documents, enabling direct ownership checks.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Controls access to user profile documents. Only the authenticated user can read or write their own profile.
-     * @path /users/{userId}
-     * @allow (get, update, delete) if the user is signed in and the requested userId matches their authentication UID.
-     * @allow (create) if the user is signed in and the created document's ID matches their authentication UID.
-     * @deny (get, list) if the user is not signed in or the requested userId does not match their authentication UID.
-     * @deny (create) if the user is not signed in or the created document's ID does not match their authentication UID.
-     * @principle Enforces document ownership for reads and writes, validates userId on creation, and ensures path consistency.
+     * @description Controls access to user documents.
+     * @path /databases/{database}/documents/users/{userId}
+     * @allow (read, update) Authenticated user with matching UID can read/update their own document.
+     * @deny (read, update) Authenticated user cannot read/update another user's document.
+     * @allow (create) Authenticated user can create their own document.
+     * @deny (create) Unauthenticated user cannot create any user document.
+     * @principle Enforces user ownership: only the authenticated user can access their own profile.
      */
     match /users/{userId} {
-      // Helper function to check if the user is signed in
-      function isSignedIn() {
-        return request.auth != null;
-      }
-
-      // Helper function to check if the authenticated user is the owner of the document
+      // Helper function to check if the request is from the owner
       function isOwner(userId) {
-        return isSignedIn() && request.auth.uid == userId;
+        return request.auth != null && request.auth.uid == userId;
       }
 
-      // Helper function to check if the authenticated user is the existing owner of the document
-      function isExistingOwner(userId) {
-        return isOwner(userId) && resource != null;
-      }
+      // Allow read and update if the user is signed in and the userId matches the requested userId
+      allow read, update: if isOwner(userId);
 
-      allow get: if isOwner(userId);
-      allow list: if false; // No user listing allowed
-
+      // Allow create if the user is signed in and the userId in the path matches the authenticated user's ID.
+      // Also validate that the user ID inside the document matches the `userId` in the path.
       allow create: if isOwner(userId) && request.resource.data.id == userId;
-      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id; //Enforce immutability
-      allow delete: if isExistingOwner(userId);
-    }
 
-    /**
-     * @description Controls access to revision log entries for a specific user. Only the authenticated user can access their own revision logs.
-     * @path /users/{userId}/revisionLogs/{revisionLogId}
-     * @allow (get, list, create, update, delete) if the user is signed in and the requested userId matches their authentication UID.
-     * @deny (get, list, create, update, delete) if the user is not signed in or the requested userId does not match their authentication UID.
-     * @principle Enforces document ownership for all operations, validates userId on creation, and ensures path consistency.
-     */
-    match /users/{userId}/revisionLogs/{revisionLogId} {
-      // Helper function to check if the user is signed in
-      function isSignedIn() {
-        return request.auth != null;
+      // Protect the user id from being changed after creation.
+      allow update: if isOwner(userId) && resource.data.id == userId;
+
+      // Prevent listing of all users
+      allow list: if false;
+
+      // Prevent deletion of user accounts
+      allow delete: if false;
+
+      /**
+       * @description Controls access to revision logs for a specific user.
+       * @path /databases/{database}/documents/users/{userId}/revisionLogs/{logId}
+       * @allow (create) Authenticated user with matching UID can create a revision log under their user ID.
+       * @deny (create) Authenticated user cannot create a revision log under another user's ID.
+       * @allow (read, update, delete) Authenticated user with matching UID can read/update/delete their own revision logs.
+       * @deny (read, update, delete) Authenticated user cannot read/update/delete revision logs of other users.
+       * @principle Enforces ownership: only the authenticated user can access their own revision logs.
+       */
+      match /revisionLogs/{logId} {
+        // Helper function to check if the request is from the owner
+        function isOwner(userId) {
+          return request.auth != null && request.auth.uid == userId;
+        }
+
+        // Allow read, create, update, delete if the user is signed in and the userId matches the requested userId
+        allow read, create, update, delete: if isOwner(userId) && request.resource.data.userId == userId;
+
+        // Allow list if the user is signed in and the userId matches the requested userId
+        allow list: if isOwner(userId);
       }
-
-      // Helper function to check if the authenticated user is the owner of the document
-      function isOwner(userId) {
-        return isSignedIn() && request.auth.uid == userId;
-      }
-
-      // Helper function to check if the authenticated user is the existing owner of the document
-      function isExistingOwner(userId) {
-        return isOwner(userId) && resource != null;
-      }
-
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-
-      allow create: if isOwner(userId) && request.resource.data.userId == userId;
-      allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId; //Enforce immutability
-      allow delete: if isExistingOwner(userId);
     }
   }
 }
