@@ -23,11 +23,22 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
       {
+        protocol: 'https' as const,
+        hostname: '*.googleusercontent.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
         protocol: 'https',
         hostname: 'picsum.photos',
         port: '',
         pathname: '/**',
       },
+    ],
+  },
+  devServer: {
+    allowedDevOrigins: [
+      'https://*.cluster-c36dgv2kibakqwbbbsgmia3fny.cloudworkstations.dev',
     ],
   },
 };
