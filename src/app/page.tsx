@@ -30,7 +30,7 @@ import { AppHeader } from "@/components/hifz-tracker/header";
 import { JourneyOverview } from "@/components/hifz-tracker/journey-overview";
 import { RevisionHistoryTable } from "@/components/hifz-tracker/revision-history-table";
 import { RevisionLogForm } from "@/components/hifz-tracker/revision-log-form";
-import { RevisionCalendar } from "@/components/hifz-tracker/revision-calendar";
+import { CustomRevisionCalendar } from "@/components/hifz-tracker/custom-revision-calendar";
 import { Login } from "@/components/hifz-tracker/login";
 import type { Revision, RevisionLog } from "@/lib/types";
 
@@ -40,7 +40,6 @@ export default function Home() {
 
   const revisionsQuery = useMemoFirebase(() => {
     if (!user || !firestore) return null;
-    // Query the top-level revisionLogs collection for logs matching the current user's ID
     return query(
       collection(firestore, "revisionLogs"),
       where("userId", "==", user.uid)
@@ -53,9 +52,8 @@ export default function Home() {
   const revisions: Revision[] = useMemoFirebase(() => {
     if (!revisionLogs) return [];
     return revisionLogs
-      .filter((log) => log.juzPart !== undefined && log.juzPart !== null) // Filter out logs without juzPart
+      .filter((log) => log.juzPart !== undefined && log.juzPart !== null) 
       .map((log) => {
-        // Handle pending server timestamps, which are null initially.
         const revisionDate = log.revisionDate as Timestamp | null;
         return {
           ...log,
@@ -72,7 +70,7 @@ export default function Home() {
     if (!user || !firestore) return;
     const revisionLogsCollection = collection(firestore, "revisionLogs");
     const newLog: Omit<RevisionLog, "id"> = {
-      userId: user.uid, // Add userId to the log
+      userId: user.uid,
       juzPart: parseInt(newRevisionData.juzPart, 10),
       revisionDate: serverTimestamp(),
       qualityRating: newRevisionData.quality,
@@ -129,7 +127,7 @@ export default function Home() {
         </div>
 
         <JourneyOverview revisions={revisions} />
-        <RevisionCalendar revisions={revisions} />
+        <CustomRevisionCalendar revisions={revisions} />
         <RevisionHistoryTable revisions={revisions} onDelete={deleteRevision} />
       </main>
     </div>
