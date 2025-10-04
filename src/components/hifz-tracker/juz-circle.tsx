@@ -95,7 +95,7 @@ export const JuzCircle = ({
     <div className="relative flex flex-col items-center">
       <svg
         viewBox="0 0 100 100"
-        className="h-16 w-16 transform-gpu transition-transform hover:scale-110"
+        className="w-12 h-12 md:h-16 md:w-16 transform-gpu transition-transform hover:scale-110"
       >
         {Array.from({ length: 4 }, (_, i) => i + 1).map((part) => {
           const juzPartValue = (juzNumber - 1) * 4 + part;

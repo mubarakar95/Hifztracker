@@ -81,7 +81,7 @@ export function JourneyOverview({ revisions }: JourneyOverviewProps) {
             open={isMobile && !!selectedPart}
             onOpenChange={(isOpen) => !isOpen && setSelectedPart(null)}
           >
-            <div className="grid grid-cols-5 gap-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10">
+            <div className="grid grid-cols-5 gap-2 sm:gap-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10">
               {Array.from({ length: 30 }, (_, i) => i + 1).map((juzNumber) => (
                 <JuzCircle
                   key={juzNumber}
