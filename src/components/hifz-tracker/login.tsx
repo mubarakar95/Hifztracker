@@ -1,68 +1,39 @@
 
 "use client";
 
-import { GoogleAuthProvider, signInWithRedirect, getRedirectResult } from "firebase/auth";
+import { GoogleAuthProvider, signInWithRedirect } from "firebase/auth";
 import { BookOpen, Loader2 } from "lucide-react";
 import { useFirebase } from "@/firebase";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useEffect, useState } from "react";
 
 export function Login() {
-  const { auth, user, isUserLoading } = useFirebase();
-  const [isSigningIn, setIsSigningIn] = useState(true);
-
-  useEffect(() => {
-    if (!auth) {
-      setIsSigningIn(false);
-      return;
-    }
-
-    if (user) {
-      setIsSigningIn(false);
-      return;
-    }
-    
-    // This effect runs on mount to check if the user is returning from a redirect.
-    getRedirectResult(auth)
-      .then((result) => {
-        // If result is null, it means the user just landed on the page without
-        // having been redirected from Google. If it's not null, the onAuthStateChanged
-        // listener in our FirebaseProvider will handle the user state update.
-        // In either case, we can stop showing the "Signing in..." message.
-        setIsSigningIn(false);
-      })
-      .catch((error) => {
-        console.error("Error during sign-in redirect:", error);
-        setIsSigningIn(false);
-      });
-  }, [auth, user]);
+  const { auth, isAuthReady } = useFirebase();
 
   const handleGoogleSignIn = () => {
-    if (!auth || isSigningIn) return;
-    
+    if (!auth) return;
     const provider = new GoogleAuthProvider();
-    setIsSigningIn(true);
     // We initiate the redirect. After the user signs in with Google, they'll be
-    // sent back here, and the useEffect hook above will handle the result.
+    // sent back to the app, and the onAuthStateChanged listener in our FirebaseProvider
+    // will handle the user state update.
     signInWithRedirect(auth, provider).catch(error => {
        console.error("Error initiating redirect sign in: ", error);
-       setIsSigningIn(false);
     });
   };
   
-  // Show a loading screen while the initial user check is happening,
-  // or while we are actively processing a sign-in redirect.
-  if (isUserLoading || isSigningIn) {
+  // Show a loading screen while the initial auth check is happening.
+  // The isAuthReady flag from the provider is the source of truth.
+  if (!isAuthReady) {
       return (
       <div className="flex min-h-screen w-full flex-col items-center justify-center bg-background">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />
-        <p className="mt-4 text-lg">Signing in...</p>
+        <p className="mt-4 text-lg">Loading...</p>
       </div>
     );
   }
 
-  // If we're done loading and there's still no user, show the login button.
+  // If auth is ready and we're on this page, it means there's no user.
+  // Show the login button.
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="w-full max-w-sm">
@@ -78,7 +49,7 @@ export function Login() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Button className="w-full" onClick={handleGoogleSignIn} disabled={isSigningIn}>
+          <Button className="w-full" onClick={handleGoogleSignIn}>
             <svg
               className="mr-2 h-4 w-4"
               aria-hidden="true"

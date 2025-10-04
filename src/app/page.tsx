@@ -34,7 +34,7 @@ import { Login } from "@/components/hifz-tracker/login";
 import type { Revision, RevisionLog } from "@/lib/types";
 
 export default function Home() {
-  const { user, isUserLoading, firestore } = useFirebase();
+  const { user, firestore, isAuthReady } = useFirebase();
   const [isFormOpen, setIsFormOpen] = useState(false);
 
   const revisionsQuery = useMemoFirebase(() => {
@@ -85,7 +85,8 @@ export default function Home() {
     deleteDocumentNonBlocking(docRef);
   };
 
-  if (isUserLoading || isLoadingRevisions) {
+  // Wait until Firebase has checked auth status and we have loaded the initial revisions
+  if (!isAuthReady || (user && isLoadingRevisions)) {
     return (
       <div className="flex min-h-screen w-full flex-col items-center justify-center">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />
@@ -94,10 +95,12 @@ export default function Home() {
     );
   }
 
+  // If auth is ready and there's no user, show the login page
   if (!user) {
     return <Login />;
   }
 
+  // If auth is ready and we have a user, show the dashboard
   return (
     <div className="flex min-h-screen w-full flex-col">
       <AppHeader revisions={revisions} />

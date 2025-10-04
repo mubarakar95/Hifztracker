@@ -18,6 +18,7 @@ interface FirebaseProviderProps {
 interface UserAuthState {
   user: User | null;
   isUserLoading: boolean;
+  isAuthReady: boolean; // New state to indicate if initial auth check is done
   userError: Error | null;
 }
 
@@ -30,6 +31,7 @@ export interface FirebaseContextState {
   // User authentication state
   user: User | null;
   isUserLoading: boolean; // True during initial auth check
+  isAuthReady: boolean;
   userError: Error | null; // Error from auth listener
 }
 
@@ -40,6 +42,7 @@ export interface FirebaseServicesAndUser {
   auth: Auth;
   user: User | null;
   isUserLoading: boolean;
+  isAuthReady: boolean;
   userError: Error | null;
 }
 
@@ -47,6 +50,7 @@ export interface FirebaseServicesAndUser {
 export interface UserHookResult { 
   user: User | null;
   isUserLoading: boolean;
+  isAuthReady: boolean;
   userError: Error | null;
 }
 
@@ -61,6 +65,7 @@ export function FirebaseProvider({
   const [userState, setUserState] = useState<UserAuthState>({
     user: null,
     isUserLoading: true,
+    isAuthReady: false, // Start as not ready
     userError: null,
   });
 
@@ -69,10 +74,11 @@ export function FirebaseProvider({
     const unsubscribe = onAuthStateChanged(
       auth,
       (user) => {
-        setUserState({ user, isUserLoading: false, userError: null });
+        // First time this runs, auth is now "ready".
+        setUserState({ user, isUserLoading: false, isAuthReady: true, userError: null });
       },
       (error) => {
-        setUserState({ user: null, isUserLoading: false, userError: error });
+        setUserState({ user: null, isUserLoading: false, isAuthReady: true, userError: error });
       }
     );
 
@@ -114,6 +120,7 @@ export function useFirebase(): FirebaseServicesAndUser {
     auth: context.auth,
     user: context.user,
     isUserLoading: context.isUserLoading,
+    isAuthReady: context.isAuthReady,
     userError: context.userError,
   };
 }
@@ -127,6 +134,7 @@ export function useUser(): UserHookResult {
   return {
     user: context.user,
     isUserLoading: context.isUserLoading,
+    isAuthReady: context.isAuthReady,
     userError: context.userError,
   };
 }
