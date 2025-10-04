@@ -20,15 +20,18 @@ export function Login() {
 
     const checkRedirectResult = async () => {
       try {
-        const result = await getRedirectResult(auth);
-        // If result is not null, a redirect has just completed.
-        // The onAuthStateChanged listener will handle the user state update.
-        // We just need to manage the loading UI state here.
+        // This promise resolves to null if the user just landed on the page
+        // without a redirect. It resolves with credentials if they just came
+        // back from the sign-in page.
+        await getRedirectResult(auth);
+        // The onAuthStateChanged listener in FirebaseProvider will handle the
+        // user state update automatically. We just need to manage the loading UI.
       } catch (error) {
         console.error("Error processing redirect result:", error);
       } finally {
         // Whether there was a redirect or not, the check is complete.
-        // We can now allow user interaction.
+        // We can now allow user interaction or let the parent component
+        // handle the now-authenticated user.
         setIsSigningIn(false);
       }
     };
