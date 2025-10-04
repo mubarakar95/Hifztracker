@@ -37,7 +37,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "RevisionLog",
       "type": "object",
-      "description": "Represents a single revision log entry for a specific half juz.",
+      "description": "Represents a single revision log entry for a specific quarter juz (5 pages).",
       "properties": {
         "id": {
           "type": "string",
@@ -47,9 +47,9 @@
           "type": "string",
           "description": "Reference to User. (Relationship: User 1:N RevisionLog)"
         },
-        "halfJuz": {
+        "juzPart": {
           "type": "number",
-          "description": "The number representing the half juz revised (1-60, where each juz is split in half)"
+          "description": "The number representing the quarter juz revised (1-120, where each juz is split into 4 parts)"
         },
         "revisionDate": {
           "type": "string",
@@ -59,7 +59,7 @@
         "qualityRating": {
           "type": "string",
           "enum": ["Excellent", "Good", "Needs Improvement"],
-          "description": "The user's rating of the revision quality (e.g., on a scale of 1-5)."
+          "description": "The user's rating of the revision quality."
         },
         "comments": {
           "type": "string",
@@ -69,7 +69,7 @@
       "required": [
         "id",
         "userId",
-        "halfJuz",
+        "juzPart",
         "revisionDate",
         "qualityRating"
       ]
@@ -95,4 +95,3 @@
     }
   }
 }
-

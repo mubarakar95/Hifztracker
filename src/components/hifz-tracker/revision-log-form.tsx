@@ -7,7 +7,7 @@ import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { halfJuzStaticData, RevisionQualities } from "@/lib/types";
+import { juzPartStaticData, RevisionQualities } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -35,7 +35,7 @@ import { Textarea } from "@/components/ui/textarea";
 import type { Revision } from "@/lib/types";
 
 const formSchema = z.object({
-  halfJuz: z.string().min(1, { message: "Please select a half juz." }),
+  juzPart: z.string().min(1, { message: "Please select a juz part." }),
   date: z.date({ required_error: "Please select a revision date." }),
   quality: z.enum(RevisionQualities, {
     required_error: "Please rate your revision quality.",
@@ -69,18 +69,18 @@ export function RevisionLogForm({ onSubmit }: RevisionLogFormProps) {
       >
         <FormField
           control={form.control}
-          name="halfJuz"
+          name="juzPart"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Half Juz</FormLabel>
+              <FormLabel>Juz Part (5 pages)</FormLabel>
               <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select a half juz" />
+                    <SelectValue placeholder="Select a juz part" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {halfJuzStaticData.map((option) => (
+                  {juzPartStaticData.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
                       {option.label}
                     </SelectItem>

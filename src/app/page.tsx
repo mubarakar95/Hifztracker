@@ -61,7 +61,7 @@ export default function Home() {
           date: revisionDate ? revisionDate.toDate() : new Date(),
           quality: log.qualityRating,
           comments: log.comments,
-          halfJuz: log.halfJuz.toString(),
+          juzPart: log.juzPart.toString(),
         };
       })
       .sort((a, b) => b.date.getTime() - a.date.getTime());
@@ -72,7 +72,7 @@ export default function Home() {
     const revisionLogsCollection = collection(firestore, "revisionLogs");
     const newLog: Omit<RevisionLog, "id"> = {
       userId: user.uid, // Add userId to the log
-      halfJuz: parseInt(newRevisionData.halfJuz, 10),
+      juzPart: parseInt(newRevisionData.juzPart, 10),
       revisionDate: serverTimestamp(),
       qualityRating: newRevisionData.quality,
       comments: newRevisionData.comments,

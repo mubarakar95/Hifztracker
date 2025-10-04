@@ -3,7 +3,7 @@
 import { BookOpen, Target, Repeat, LogOut } from "lucide-react";
 import { signOut } from "firebase/auth";
 import type { Revision } from "@/lib/types";
-import { halfJuzStaticData, halfJuzMap } from "@/lib/types";
+import { juzPartStaticData, juzPartMap } from "@/lib/types";
 import { useMemo } from "react";
 import { differenceInDays } from "date-fns";
 import { useFirebase } from "@/firebase";
@@ -28,22 +28,22 @@ const qualityScoreMap: Record<Revision["quality"], number> = {
 const calculateObjective = (revisions: Revision[]): string => {
   if (revisions.length === 0) return "Start your journey!";
 
-  const allHalfJuz = halfJuzStaticData.map((j) => j.value);
-  const revisedJuz = new Set(revisions.map((r) => r.halfJuz));
+  const allJuzParts = juzPartStaticData.map((j) => j.value);
+  const revisedParts = new Set(revisions.map((r) => r.juzPart));
 
-  const unrevisedJuz = allHalfJuz.find((j) => !revisedJuz.has(j));
-  if (unrevisedJuz) {
-    return halfJuzMap.get(unrevisedJuz) || "Start your journey!";
+  const unrevisedPart = allJuzParts.find((j) => !revisedParts.has(j));
+  if (unrevisedPart) {
+    return juzPartMap.get(unrevisedPart) || "Start your journey!";
   }
 
   const latestRevisionsMap = new Map<string, Revision>();
   for (const revision of revisions) {
     if (
-      !latestRevisionsMap.has(revision.halfJuz) ||
+      !latestRevisionsMap.has(revision.juzPart) ||
       new Date(revision.date) >
-        new Date(latestRevisionsMap.get(revision.halfJuz)!.date)
+        new Date(latestRevisionsMap.get(revision.juzPart)!.date)
     ) {
-      latestRevisionsMap.set(revision.halfJuz, revision);
+      latestRevisionsMap.set(revision.juzPart, revision);
     }
   }
 
@@ -51,8 +51,8 @@ const calculateObjective = (revisions: Revision[]): string => {
   let maxScore = -1;
   const now = new Date();
 
-  for (const halfJuz of allHalfJuz) {
-    const revision = latestRevisionsMap.get(halfJuz);
+  for (const juzPart of allJuzParts) {
+    const revision = latestRevisionsMap.get(juzPart);
     if (!revision) continue;
 
     const qualityScore = qualityScoreMap[revision.quality];
@@ -62,11 +62,11 @@ const calculateObjective = (revisions: Revision[]): string => {
 
     if (score > maxScore) {
       maxScore = score;
-      nextJuzToRevise = halfJuz;
+      nextJuzToRevise = juzPart;
     }
   }
 
-  return halfJuzMap.get(nextJuzToRevise) || "Complete all revisions!";
+  return juzPartMap.get(nextJuzToRevise) || "Complete all revisions!";
 };
 
 const calculateDawra = (revisions: Revision[]): number => {
@@ -75,18 +75,18 @@ const calculateDawra = (revisions: Revision[]): number => {
   const revisionCounts = new Map<string, number>();
   for (const revision of revisions) {
     revisionCounts.set(
-      revision.halfJuz,
-      (revisionCounts.get(revision.halfJuz) || 0) + 1
+      revision.juzPart,
+      (revisionCounts.get(revision.juzPart) || 0) + 1
     );
   }
 
-  if (revisionCounts.size < halfJuzStaticData.length) {
+  if (revisionCounts.size < juzPartStaticData.length) {
     return 0;
   }
 
   let minRevisions = Infinity;
-  for (const halfJuz of halfJuzStaticData) {
-    const count = revisionCounts.get(halfJuz.value) || 0;
+  for (const juzPart of juzPartStaticData) {
+    const count = revisionCounts.get(juzPart.value) || 0;
     if (count < minRevisions) {
       minRevisions = count;
     }

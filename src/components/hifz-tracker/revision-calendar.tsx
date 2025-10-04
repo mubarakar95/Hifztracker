@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { format } from "date-fns";
 import type { Revision } from "@/lib/types";
-import { halfJuzMap } from "@/lib/types";
+import { juzPartMap } from "@/lib/types";
 import { useIsMobile } from "@/hooks/use-mobile";
 import {
   Card,
@@ -102,7 +102,7 @@ export function RevisionCalendar({ revisions }: RevisionCalendarProps) {
             <div className="flex flex-col gap-2">
               {dailyRevisions.map((rev) => (
                 <Badge key={rev.id} variant="secondary">
-                  {halfJuzMap.get(rev.halfJuz)}
+                  {juzPartMap.get(rev.juzPart)}
                 </Badge>
               ))}
             </div>
@@ -140,7 +140,7 @@ export function RevisionCalendar({ revisions }: RevisionCalendarProps) {
                   <div className="flex flex-col gap-2">
                     {selectedRevisions.map((rev) => (
                       <Badge key={rev.id} variant="secondary">
-                        {halfJuzMap.get(rev.halfJuz)}
+                        {juzPartMap.get(rev.juzPart)}
                       </Badge>
                     ))}
                   </div>

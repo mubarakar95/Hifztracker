@@ -5,7 +5,7 @@ export type RevisionQuality = (typeof RevisionQualities)[number];
 
 export type Revision = {
   id: string;
-  halfJuz: string;
+  juzPart: string;
   date: Date;
   quality: RevisionQuality;
   comments?: string;
@@ -14,17 +14,19 @@ export type Revision = {
 export type RevisionLog = {
     id: string;
     userId: string;
-    halfJuz: number;
+    juzPart: number;
     revisionDate: Timestamp;
     qualityRating: RevisionQuality;
     comments?: string;
 }
 
-// All 60 half-juz identifiers and labels
-export const halfJuzStaticData = Array.from({ length: 30 }, (_, i) => i + 1).flatMap(juz => [
-    { value: `${(juz - 1) * 2 + 1}`, label: `Juz ${juz} - First Half` },
-    { value: `${(juz - 1) * 2 + 2}`, label: `Juz ${juz} - Second Half` },
+// All 120 quarter-juz identifiers and labels
+export const juzPartStaticData = Array.from({ length: 30 }, (_, i) => i + 1).flatMap(juz => [
+    { value: `${(juz - 1) * 4 + 1}`, label: `Juz ${juz} - Part 1` },
+    { value: `${(juz - 1) * 4 + 2}`, label: `Juz ${juz} - Part 2` },
+    { value: `${(juz - 1) * 4 + 3}`, label: `Juz ${juz} - Part 3` },
+    { value: `${(juz - 1) * 4 + 4}`, label: `Juz ${juz} - Part 4` },
 ]);
 
-// A map for quick label lookup from a half-juz value
-export const halfJuzMap = new Map(halfJuzStaticData.map(item => [item.value, item.label]));
+// A map for quick label lookup from a quarter-juz value
+export const juzPartMap = new Map(juzPartStaticData.map(item => [item.value, item.label]));

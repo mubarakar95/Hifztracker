@@ -4,7 +4,7 @@ import { useState } from "react";
 import { format } from "date-fns";
 import { Trash2 } from "lucide-react";
 
-import { halfJuzMap, type Revision } from "@/lib/types";
+import { juzPartMap, type Revision } from "@/lib/types";
 import {
   Card,
   CardContent,
@@ -60,7 +60,7 @@ export function RevisionHistoryTable({
           sortedRevisions.map((revision) => (
             <div key={revision.id} className="rounded-lg border p-4 text-sm">
               <div className="flex items-center justify-between">
-                <span className="font-bold">{halfJuzMap.get(revision.halfJuz)}</span>
+                <span className="font-bold">{juzPartMap.get(revision.juzPart)}</span>
                  <AlertDialog
                   open={itemToDelete?.id === revision.id}
                   onOpenChange={(isOpen) => !isOpen && setItemToDelete(null)}
@@ -80,7 +80,7 @@ export function RevisionHistoryTable({
                       <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                       <AlertDialogDescription>
                         This will permanently delete the revision entry for{" "}
-                        <strong>{halfJuzMap.get(revision.halfJuz)}</strong> on{" "}
+                        <strong>{juzPartMap.get(revision.juzPart)}</strong> on{" "}
                         <strong>{format(revision.date, "PPP")}</strong>. This
                         action cannot be undone.
                       </AlertDialogDescription>
@@ -121,7 +121,7 @@ export function RevisionHistoryTable({
           <Table>
             <TableHeader className="sticky top-0 bg-card">
               <TableRow>
-                <TableHead>Half Juz</TableHead>
+                <TableHead>Juz Part</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead>Quality</TableHead>
                 <TableHead>Comments</TableHead>
@@ -133,7 +133,7 @@ export function RevisionHistoryTable({
                 sortedRevisions.map((revision) => (
                   <TableRow key={revision.id}>
                     <TableCell className="font-medium">
-                      {halfJuzMap.get(revision.halfJuz)}
+                      {juzPartMap.get(revision.juzPart)}
                     </TableCell>
                     <TableCell>{format(revision.date, "PPP")}</TableCell>
                     <TableCell>
@@ -166,7 +166,7 @@ export function RevisionHistoryTable({
                             <AlertDialogDescription>
                               This will permanently delete the revision entry for{" "}
                               <strong>
-                                {halfJuzMap.get(revision.halfJuz)}
+                                {juzPartMap.get(revision.juzPart)}
                               </strong>{" "}
                               on{" "}
                               <strong>{format(revision.date, "PPP")}</strong>.

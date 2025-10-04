@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import type { Revision, RevisionQuality } from "@/lib/types";
-import { halfJuzStaticData } from "@/lib/types";
+import { juzPartStaticData } from "@/lib/types";
 import {
   Card,
   CardContent,
@@ -47,46 +47,55 @@ export function JourneyOverview({ revisions }: JourneyOverviewProps) {
   const latestRevisionsMap = useMemo(() => {
     const map = new Map<string, Revision>();
     revisions.forEach((revision) => {
-      const existing = map.get(revision.halfJuz);
+      const existing = map.get(revision.juzPart);
       if (!existing || revision.date > existing.date) {
-        map.set(revision.halfJuz, revision);
+        map.set(revision.juzPart, revision);
       }
     });
     return map;
   }, [revisions]);
-  
+
   const selectedRevision = selectedJuz ? latestRevisionsMap.get(selectedJuz.value) : null;
 
   const renderJuzSquare = (value: string, label: string) => {
     const latestRevision = latestRevisionsMap.get(value);
-    const juzNumber = label.match(/Juz (\d+)/)?.[1];
+    const partNumber = parseInt(value, 10);
+    const isFirstInJuz = (partNumber - 1) % 4 === 0;
 
     return (
       <div
         className={cn(
-          "h-10 w-10 sm:h-12 sm:w-12 rounded-md border flex items-center justify-center font-bold text-sm transition-colors",
+          "h-8 w-8 sm:h-9 sm:w-9 rounded-sm border flex items-center justify-center font-bold text-xs transition-colors",
           latestRevision
             ? qualityColorMap[latestRevision.quality]
-            : "bg-muted/50 hover:bg-muted"
+            : "bg-muted/50 hover:bg-muted",
+          isFirstInJuz && "ml-2"
         )}
       >
         <span
           className={cn(
+            "text-xs",
             latestRevision ? "text-primary-foreground" : "text-muted-foreground"
           )}
         >
-          {juzNumber}
+          {partNumber}
         </span>
       </div>
     );
   };
+  
+  const juzGroups = Array.from({ length: 30 }, (_, i) => {
+    const juzNumber = i + 1;
+    const parts = juzPartStaticData.filter(part => part.label.startsWith(`Juz ${juzNumber}`));
+    return { juzNumber, parts };
+  });
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Journey Overview</CardTitle>
         <CardDescription>
-          A visual summary of your revision progress.{" "}
+          A visual summary of your revision progress. Each group is a Juz, each square is 5 pages.{" "}
           {isMobile
             ? "Tap a square for details."
             : "Hover over a square for details."}
@@ -98,8 +107,8 @@ export function JourneyOverview({ revisions }: JourneyOverviewProps) {
             open={!!selectedJuz}
             onOpenChange={(isOpen) => !isOpen && setSelectedJuz(null)}
           >
-            <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-10 lg:grid-cols-12 gap-2">
-              {halfJuzStaticData.map(({ value, label }) => (
+            <div className="flex flex-wrap gap-2">
+              {juzPartStaticData.map(({ value, label }) => (
                 <DialogTrigger
                   key={value}
                   asChild
@@ -112,55 +121,68 @@ export function JourneyOverview({ revisions }: JourneyOverviewProps) {
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>{selectedJuz?.label}</DialogTitle>
-                <DialogDescription>
-                  {selectedRevision ? (
-                    <span>
-                      Last revised:{" "}
-                      <strong>
-                        {format(selectedRevision.date, "PPP")}
-                      </strong>
-                    </span>
-                  ) : (
-                    <span>Not yet revised.</span>
-                  )}
-                </DialogDescription>
-                  {selectedRevision && (
-                    <div className="space-y-1 pt-2 text-sm text-muted-foreground">
-                       <div>
-                        Quality: <strong>{selectedRevision.quality}</strong>
-                      </div>
-                      {selectedRevision.comments && <div>Comments: {selectedRevision.comments}</div>}
+                {selectedRevision ? (
+                  <DialogDescription>
+                    Last revised:{" "}
+                    <strong>
+                      {format(selectedRevision.date, "PPP")}
+                    </strong>
+                  </DialogDescription>
+                ) : (
+                  <DialogDescription>Not yet revised.</DialogDescription>
+                )}
+                {selectedRevision && (
+                  <div className="space-y-1 pt-2 text-sm text-muted-foreground">
+                    <div>
+                      Quality: <strong>{selectedRevision.quality}</strong>
                     </div>
-                  )}
+                    {selectedRevision.comments && <div>Comments: {selectedRevision.comments}</div>}
+                  </div>
+                )}
               </DialogHeader>
             </DialogContent>
           </Dialog>
         ) : (
           <TooltipProvider>
-            <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-10 lg:grid-cols-12 gap-2">
-              {halfJuzStaticData.map(({ value, label }) => {
-                const latestRevision = latestRevisionsMap.get(value);
-                return (
-                  <Tooltip key={value} delayDuration={0}>
-                    <TooltipTrigger asChild>
-                      {renderJuzSquare(value, label)}
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="font-bold">{label}</p>
-                      {latestRevision ? (
-                        <>
-                          <p>
-                            Last revised: {format(latestRevision.date, "PPP")}
-                          </p>
-                          <p>Quality: {latestRevision.quality}</p>
-                        </>
-                      ) : (
-                        <p>Not yet revised</p>
-                      )}
-                    </TooltipContent>
-                  </Tooltip>
-                );
-              })}
+            <div className="flex flex-wrap gap-y-2">
+                {juzGroups.map(({juzNumber, parts}) => (
+                    <div key={juzNumber} className="flex items-center">
+                        <div className="w-8 text-right mr-2 font-medium text-muted-foreground text-sm">{juzNumber}</div>
+                        <div className="flex gap-1">
+                            {parts.map(({ value, label }) => {
+                                const latestRevision = latestRevisionsMap.get(value);
+                                return (
+                                <Tooltip key={value} delayDuration={0}>
+                                    <TooltipTrigger asChild>
+                                    <div
+                                        className={cn(
+                                            "h-8 w-8 sm:h-9 sm:w-9 rounded-sm border flex items-center justify-center font-bold text-xs transition-colors",
+                                            latestRevision
+                                            ? qualityColorMap[latestRevision.quality]
+                                            : "bg-muted/50 hover:bg-muted"
+                                        )}
+                                        >
+                                    </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                    <p className="font-bold">{label}</p>
+                                    {latestRevision ? (
+                                        <>
+                                        <p>
+                                            Last revised: {format(latestRevision.date, "PPP")}
+                                        </p>
+                                        <p>Quality: {latestRevision.quality}</p>
+                                        </>
+                                    ) : (
+                                        <p>Not yet revised</p>
+                                    )}
+                                    </TooltipContent>
+                                </Tooltip>
+                                );
+                            })}
+                        </div>
+                    </div>
+                ))}
             </div>
           </TooltipProvider>
         )}
