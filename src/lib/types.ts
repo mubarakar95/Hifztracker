@@ -6,7 +6,7 @@ export type Revision = {
   halfJuz: string;
   date: Date;
   quality: RevisionQuality;
-  comments: string;
+  comments?: string;
 };
 
 // All 60 half-juz identifiers and labels
