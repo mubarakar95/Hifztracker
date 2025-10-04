@@ -1,6 +1,6 @@
 "use client";
 
-import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { GoogleAuthProvider } from "firebase/auth";
 import { BookOpen } from "lucide-react";
 import { useFirebase } from "@/firebase";
 import { Button } from "@/components/ui/button";
@@ -12,8 +12,11 @@ export function Login() {
 
   const handleGoogleSignIn = () => {
     const provider = new GoogleAuthProvider();
-    // Use non-blocking sign-in to avoid issues with popup closing
     nonBlockingSignInWithPopup(auth, provider).catch(error => {
+      // Don't log an error if the user closes the popup. This is a normal action.
+      if (error.code === 'auth/popup-closed-by-user') {
+        return;
+      }
       console.error("Error signing in with Google: ", error);
     });
   };
