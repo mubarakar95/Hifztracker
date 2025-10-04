@@ -1,4 +1,4 @@
-import { BookOpen, Target } from "lucide-react";
+import { BookOpen, Target, Repeat } from "lucide-react";
 import type { Revision } from "@/lib/types";
 import { halfJuzStaticData, halfJuzMap } from "@/lib/types";
 import { useMemo } from "react";
@@ -49,9 +49,32 @@ const calculateObjective = (revisions: Revision[]): string => {
   return halfJuzMap.get(nextJuzToRevise) || "Complete all revisions!";
 };
 
+const calculateDawra = (revisions: Revision[]): number => {
+  if (revisions.length === 0) return 0;
+
+  const revisionCounts = new Map<string, number>();
+  for (const revision of revisions) {
+    revisionCounts.set(revision.halfJuz, (revisionCounts.get(revision.halfJuz) || 0) + 1);
+  }
+
+  if (revisionCounts.size < halfJuzStaticData.length) {
+    return 0;
+  }
+
+  let minRevisions = Infinity;
+  for (const halfJuz of halfJuzStaticData) {
+    const count = revisionCounts.get(halfJuz.value) || 0;
+    if (count < minRevisions) {
+      minRevisions = count;
+    }
+  }
+
+  return minRevisions;
+};
 
 export function AppHeader({ revisions }: { revisions: Revision[] }) {
   const objective = useMemo(() => calculateObjective(revisions), [revisions]);
+  const dawra = useMemo(() => calculateDawra(revisions), [revisions]);
 
   return (
     <header className="flex h-16 items-center border-b bg-card px-4 md:px-6 justify-between">
@@ -59,13 +82,22 @@ export function AppHeader({ revisions }: { revisions: Revision[] }) {
         <BookOpen className="h-6 w-6 text-primary" />
         <h1 className="font-headline text-xl font-semibold">Hifz Tracker</h1>
       </div>
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-6">
+        <div className="flex items-center gap-3">
+          <Repeat className="h-5 w-5 text-primary" />
+          <div className="flex flex-col">
+            <span className="text-sm font-medium text-muted-foreground">Dawra</span>
+            <span className="font-semibold text-primary">{dawra}</span>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
           <Target className="h-5 w-5 text-accent" />
           <div className="flex flex-col">
             <span className="text-sm font-medium text-muted-foreground">Next Objective</span>
             <span className="font-semibold text-accent">{objective}</span>
           </div>
         </div>
+      </div>
     </header>
   );
 }
