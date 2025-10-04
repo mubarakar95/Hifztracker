@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -46,13 +47,17 @@ export default function Home() {
   const revisions: Revision[] = useMemoFirebase(() => {
     if (!revisionLogs) return [];
     return revisionLogs
-      .map((log) => ({
-        ...log,
-        date: (log.revisionDate as Timestamp).toDate(),
-        quality: log.qualityRating,
-        comments: log.comments,
-        halfJuz: log.halfJuz.toString(),
-      }))
+      .map((log) => {
+        // Handle pending server timestamps, which are null initially.
+        const revisionDate = log.revisionDate as Timestamp | null;
+        return {
+          ...log,
+          date: revisionDate ? revisionDate.toDate() : new Date(),
+          quality: log.qualityRating,
+          comments: log.comments,
+          halfJuz: log.halfJuz.toString(),
+        };
+      })
       .sort((a, b) => b.date.getTime() - a.date.getTime());
   }, [revisionLogs]);
 
