@@ -17,11 +17,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { Card } from "../ui/card";
 
 const qualityScoreMap: Record<Revision["quality"], number> = {
   "Needs Improvement": 3,
-  "Good": 2,
-  "Excellent": 1,
+  Good: 2,
+  Excellent: 1,
 };
 
 const calculateObjective = (revisions: Revision[]): string => {
@@ -116,31 +117,11 @@ export function AppHeader({ revisions }: { revisions: Revision[] }) {
   };
 
   return (
-    <header className="flex h-auto min-h-16 items-center border-b bg-card px-4 py-2 md:px-6 md:h-16 justify-between flex-wrap gap-4">
-      <div className="flex items-center gap-2">
-        <BookOpen className="h-6 w-6 text-primary" />
-        <h1 className="font-headline text-xl font-semibold">Hifz Tracker</h1>
-      </div>
-      <div className="flex w-full md:w-auto items-center justify-around md:justify-end gap-4 md:gap-6">
-        <div className="flex items-center gap-3">
-          <Repeat className="h-5 w-5 text-primary" />
-          <div className="flex flex-col">
-            <span className="text-sm font-medium text-muted-foreground">
-              Dawra
-            </span>
-            <span className="font-semibold text-primary">{dawra}</span>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <Target className="h-5 w-5 text-accent" />
-          <div className="flex flex-col">
-            <span className="text-sm font-medium text-muted-foreground">
-              Next Objective
-            </span>
-            <span className="font-semibold text-accent truncate max-w-[150px] sm:max-w-none">
-              {objective}
-            </span>
-          </div>
+    <header className="flex flex-col border-b bg-card">
+      <div className="flex h-16 items-center justify-between px-4 md:px-6">
+        <div className="flex items-center gap-2">
+          <BookOpen className="h-6 w-6 text-primary" />
+          <h1 className="font-headline text-xl font-semibold">Hifz Tracker</h1>
         </div>
         {user && (
           <DropdownMenu>
@@ -176,6 +157,52 @@ export function AppHeader({ revisions }: { revisions: Revision[] }) {
             </DropdownMenuContent>
           </DropdownMenu>
         )}
+      </div>
+
+      <div className="grid grid-cols-2 gap-px border-t bg-border md:hidden">
+        <Card className="flex flex-col items-center justify-center gap-1 rounded-none border-0 p-4">
+          <div className="flex items-center gap-2">
+            <Repeat className="h-5 w-5 text-primary" />
+            <span className="text-sm font-medium text-muted-foreground">
+              Dawra
+            </span>
+          </div>
+          <span className="text-2xl font-bold text-primary">{dawra}</span>
+        </Card>
+        <Card className="flex flex-col items-center justify-center gap-1 rounded-none border-0 p-4">
+          <div className="flex items-center gap-2">
+            <Target className="h-5 w-5 text-accent" />
+            <span className="text-sm font-medium text-muted-foreground">
+              Objective
+            </span>
+          </div>
+          <span className="truncate text-center text-lg font-semibold text-accent">
+            {objective}
+          </span>
+        </Card>
+      </div>
+
+      <div className="hidden h-16 items-center justify-end gap-6 border-t px-6 md:flex">
+         <div className="flex items-center gap-3">
+          <Repeat className="h-5 w-5 text-primary" />
+          <div className="flex flex-col">
+            <span className="text-sm font-medium text-muted-foreground">
+              Dawra
+            </span>
+            <span className="font-semibold text-primary">{dawra}</span>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <Target className="h-5 w-5 text-accent" />
+          <div className="flex flex-col">
+            <span className="text-sm font-medium text-muted-foreground">
+              Next Objective
+            </span>
+            <span className="font-semibold text-accent truncate max-w-[200px]">
+              {objective}
+            </span>
+          </div>
+        </div>
       </div>
     </header>
   );
