@@ -1,0 +1,91 @@
+import { useMemo } from "react";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+import type { Revision, RevisionQuality } from "@/lib/types";
+import { halfJuzStaticData } from "@/lib/types";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+
+type JourneyOverviewProps = {
+  revisions: Revision[];
+};
+
+const qualityColorMap: Record<RevisionQuality, string> = {
+  Excellent: "bg-primary/80 border-primary",
+  Good: "bg-accent/80 border-accent",
+  "Needs Improvement": "bg-destructive/80 border-destructive",
+};
+
+export function JourneyOverview({ revisions }: JourneyOverviewProps) {
+  const latestRevisionsMap = useMemo(() => {
+    const map = new Map<string, Revision>();
+    revisions.forEach((revision) => {
+      const existing = map.get(revision.halfJuz);
+      if (!existing || revision.date > existing.date) {
+        map.set(revision.halfJuz, revision);
+      }
+    });
+    return map;
+  }, [revisions]);
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Journey Overview</CardTitle>
+        <CardDescription>
+          A visual summary of your revision progress. Hover over a square for details.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <TooltipProvider>
+          <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-10 lg:grid-cols-12 gap-2">
+            {halfJuzStaticData.map(({ value, label }) => {
+              const latestRevision = latestRevisionsMap.get(value);
+              const juzNumber = label.match(/Juz (\d+)/)?.[1];
+              return (
+                <Tooltip key={value} delayDuration={0}>
+                  <TooltipTrigger>
+                    <div
+                      className={cn(
+                        "h-10 w-10 sm:h-12 sm:w-12 rounded-md border flex items-center justify-center font-bold text-sm transition-colors",
+                        latestRevision
+                          ? qualityColorMap[latestRevision.quality]
+                          : "bg-muted/50 hover:bg-muted"
+                      )}
+                    >
+                      <span className={cn(latestRevision ? "text-primary-foreground" : "text-muted-foreground")}>{juzNumber}</span>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="font-bold">{label}</p>
+                    {latestRevision ? (
+                      <>
+                        <p>
+                          Last revised: {format(latestRevision.date, "PPP")}
+                        </p>
+                        <p>Quality: {latestRevision.quality}</p>
+                      </>
+                    ) : (
+                      <p>Not yet revised</p>
+                    )}
+                  </TooltipContent>
+                </Tooltip>
+              );
+            })}
+          </div>
+        </TooltipProvider>
+      </CardContent>
+    </Card>
+  );
+}
