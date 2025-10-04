@@ -11,6 +11,8 @@ const qualityScoreMap: Record<Revision['quality'], number> = {
 };
 
 const calculateObjective = (revisions: Revision[]): string => {
+  if (revisions.length === 0) return "Start your journey!";
+
   const allHalfJuz = halfJuzStaticData.map((j) => j.value);
   const revisedJuz = new Set(revisions.map((r) => r.halfJuz));
 
@@ -21,7 +23,7 @@ const calculateObjective = (revisions: Revision[]): string => {
 
   const latestRevisionsMap = new Map<string, Revision>();
   for (const revision of revisions) {
-    if (!latestRevisionsMap.has(revision.halfJuz) || revision.date > latestRevisionsMap.get(revision.halfJuz)!.date) {
+    if (!latestRevisionsMap.has(revision.halfJuz) || new Date(revision.date) > new Date(latestRevisionsMap.get(revision.halfJuz)!.date)) {
       latestRevisionsMap.set(revision.halfJuz, revision);
     }
   }
@@ -35,9 +37,8 @@ const calculateObjective = (revisions: Revision[]): string => {
     if (!revision) continue; 
 
     const qualityScore = qualityScoreMap[revision.quality];
-    const daysSinceRevision = differenceInDays(now, revision.date);
+    const daysSinceRevision = differenceInDays(now, new Date(revision.date));
 
-    // Simple scoring: quality has higher weight. Add days to break ties.
     const score = (qualityScore * 100) + daysSinceRevision;
 
     if (score > maxScore) {
@@ -77,12 +78,12 @@ export function AppHeader({ revisions }: { revisions: Revision[] }) {
   const dawra = useMemo(() => calculateDawra(revisions), [revisions]);
 
   return (
-    <header className="flex h-16 items-center border-b bg-card px-4 md:px-6 justify-between">
+    <header className="flex h-auto min-h-16 items-center border-b bg-card px-4 py-2 md:px-6 md:h-16 justify-between flex-wrap gap-4">
       <div className="flex items-center gap-2">
         <BookOpen className="h-6 w-6 text-primary" />
         <h1 className="font-headline text-xl font-semibold">Hifz Tracker</h1>
       </div>
-      <div className="flex items-center gap-6">
+      <div className="flex w-full md:w-auto items-center justify-around gap-4 md:gap-6">
         <div className="flex items-center gap-3">
           <Repeat className="h-5 w-5 text-primary" />
           <div className="flex flex-col">
@@ -94,7 +95,7 @@ export function AppHeader({ revisions }: { revisions: Revision[] }) {
           <Target className="h-5 w-5 text-accent" />
           <div className="flex flex-col">
             <span className="text-sm font-medium text-muted-foreground">Next Objective</span>
-            <span className="font-semibold text-accent">{objective}</span>
+            <span className="font-semibold text-accent truncate max-w-[150px] sm:max-w-none">{objective}</span>
           </div>
         </div>
       </div>
