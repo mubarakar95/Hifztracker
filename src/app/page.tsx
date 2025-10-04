@@ -18,6 +18,7 @@ import { AppHeader } from "@/components/hifz-tracker/header";
 import { JourneyOverview } from "@/components/hifz-tracker/journey-overview";
 import { RevisionHistoryTable } from "@/components/hifz-tracker/revision-history-table";
 import { RevisionLogForm } from "@/components/hifz-tracker/revision-log-form";
+import { RevisionCalendar } from "@/components/hifz-tracker/revision-calendar";
 
 export default function Home() {
   const [revisions, setRevisions] = useState<Revision[]>(initialRevisions);
@@ -64,6 +65,7 @@ export default function Home() {
         </div>
 
         <JourneyOverview revisions={revisions} />
+        <RevisionCalendar revisions={revisions} />
         <RevisionHistoryTable revisions={revisions} onDelete={deleteRevision} />
       </main>
     </div>
