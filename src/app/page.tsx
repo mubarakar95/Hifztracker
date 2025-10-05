@@ -34,7 +34,7 @@ import { Login } from "@/components/hifz-tracker/login";
 import type { Revision, RevisionLog } from "@/lib/types";
 
 export default function Home() {
-  const { user, firestore, isAuthReady } = useFirebase();
+  const { user, firestore, isAuthReady, isLoading: isUserLoading } = useFirebase();
   const [isFormOpen, setIsFormOpen] = useState(false);
 
   const revisionsQuery = useMemoFirebase(() => {
@@ -85,9 +85,8 @@ export default function Home() {
     deleteDocumentNonBlocking(docRef);
   };
 
-  // Wait until Firebase has confirmed the initial auth state.
-  // The Login component itself will show a "Signing in..." message if a redirect is in progress.
-  if (!isAuthReady) {
+  // Show a loading screen while Firebase is initializing or if the user is in the process of signing in.
+  if (!isAuthReady || isUserLoading) {
     return (
       <div className="flex min-h-screen w-full flex-col items-center justify-center">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />
