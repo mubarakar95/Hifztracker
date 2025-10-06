@@ -1,9 +1,9 @@
 
 "use client";
 
-import { GoogleAuthProvider, signInWithRedirect } from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import Image from "next/image";
-import { BookOpen } from "lucide-react";
+import { BookOpen, Loader2 } from "lucide-react";
 import { useFirebase } from "@/firebase";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,17 +14,24 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import placeholderImage from "@/lib/placeholder-images.json";
+import { useState } from "react";
 
 
 export function Login() {
   const { auth } = useFirebase();
+  const [isSigningIn, setIsSigningIn] = useState(false);
 
-  const handleGoogleSignIn = () => {
+  const handleGoogleSignIn = async () => {
     if (!auth) return;
+    setIsSigningIn(true);
     const provider = new GoogleAuthProvider();
-    signInWithRedirect(auth, provider).catch((error) => {
-      console.error("Error initiating redirect sign in: ", error);
-    });
+    try {
+      await signInWithPopup(auth, provider);
+      // The onAuthStateChanged listener in FirebaseProvider will handle the redirect to the dashboard.
+    } catch (error) {
+      console.error("Error during sign-in with popup: ", error);
+      setIsSigningIn(false);
+    }
   };
 
   return (
@@ -44,7 +51,10 @@ export function Login() {
                 </CardDescription>
             </CardHeader>
             <CardContent>
-                <Button className="w-full" onClick={handleGoogleSignIn}>
+                <Button className="w-full" onClick={handleGoogleSignIn} disabled={isSigningIn}>
+                  {isSigningIn ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
                     <svg
                     className="mr-2 h-4 w-4"
                     aria-hidden="true"
@@ -60,7 +70,8 @@ export function Login() {
                         d="M488 261.8C488 403.3 381.5 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 126 23.4 172.9 61.9l-67.4 64.8C317.3 99.6 283.7 84 248 84c-84.3 0-152.3 67.8-152.3 151.7s68 151.7 152.3 151.7c99.1 0 129.2-80.3 132.3-118.1H248v-85.3h236.1c2.3 12.7 3.9 26.9 3.9 41.4z"
                     ></path>
                     </svg>
-                    Sign in with Google
+                  )}
+                    {isSigningIn ? "Signing In..." : "Sign in with Google"}
                 </Button>
             </CardContent>
            </Card>
