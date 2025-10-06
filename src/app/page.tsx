@@ -34,7 +34,7 @@ import { Login } from "@/components/hifz-tracker/login";
 import type { Revision, RevisionLog } from "@/lib/types";
 
 export default function Home() {
-  const { user, firestore, isAuthReady, isUserLoading } = useFirebase();
+  const { user, firestore, isAuthReady, isUserLoading, isVerifyingRedirect } = useFirebase();
   const [isFormOpen, setIsFormOpen] = useState(false);
 
   const revisionsQuery = useMemoFirebase(() => {
@@ -85,9 +85,9 @@ export default function Home() {
     deleteDocumentNonBlocking(docRef);
   };
 
-  // Wait for Firebase to be ready and for any sign-in/out to complete.
   // This is the primary loading gate for the entire application.
-  if (!isAuthReady || isUserLoading) {
+  // It waits for Firebase to be ready, for any redirect to be processed, and for user status to be confirmed.
+  if (!isAuthReady || isUserLoading || isVerifyingRedirect) {
     return (
       <div className="flex min-h-screen w-full flex-col items-center justify-center">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />
@@ -97,7 +97,6 @@ export default function Home() {
   }
 
   // If Firebase is ready but there's no user, show the login page.
-  // The Login component itself will handle the post-redirect verification state.
   if (!user) {
     return <Login />;
   }
