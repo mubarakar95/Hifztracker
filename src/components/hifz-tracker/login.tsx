@@ -24,16 +24,22 @@ export function Login() {
   useEffect(() => {
     if (!auth) return;
     
+    // This hook runs on mount and after a redirect.
+    // getRedirectResult resolves with the user credential on a successful redirect
+    // or null if the user just landed on the page without a redirect.
     getRedirectResult(auth)
       .then((result) => {
-        // If result is null, it means the user just landed on the login page
-        // and didn't come from a redirect. If there is a result, the 
-        // onAuthStateChanged listener in the provider will handle the user state.
+        // If result is not null, a sign-in was successful.
+        // The onAuthStateChanged listener in FirebaseProvider will handle updating the user state.
+        // We don't need to do anything with the `result` here.
       })
       .catch((error) => {
+        // Handle errors from the redirect.
         console.error("Error during redirect result processing: ", error);
       })
       .finally(() => {
+        // This is the crucial part. We stop showing the loading screen
+        // only after getRedirectResult has finished.
         setIsVerifying(false);
       });
   }, [auth]);
@@ -46,6 +52,8 @@ export function Login() {
     signInWithRedirect(auth, provider);
   };
   
+  // While we are verifying the redirect result, show a loading screen.
+  // This prevents the main page from prematurely deciding there's no user.
   if (isVerifying) {
     return (
       <div className="flex min-h-screen w-full flex-col items-center justify-center">
