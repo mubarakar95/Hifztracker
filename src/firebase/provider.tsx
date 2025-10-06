@@ -6,23 +6,24 @@ import { FirebaseApp } from 'firebase/app';
 import { Firestore } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
+import { useFirebaseClient } from './client-provider';
 
 // This context will be provided by the new FirebaseClientProvider
-const FirebaseClientContext = createContext<{
-  firebaseApp: FirebaseApp;
-  firestore: Firestore;
-  auth: Auth;
-} | null>(null);
+// const FirebaseClientContext = createContext<{
+//   firebaseApp: FirebaseApp;
+//   firestore: Firestore;
+//   auth: Auth;
+// } | null>(null);
 
-export const FirebaseClientProvider = FirebaseClientContext.Provider;
+// export const FirebaseClientProvider = FirebaseClientContext.Provider;
 
-export function useFirebaseClient() {
-  const context = useContext(FirebaseClientContext);
-  if (!context) {
-    throw new Error('useFirebaseClient must be used within a FirebaseClientProvider');
-  }
-  return context;
-}
+// export function useFirebaseClient() {
+//   const context = useContext(FirebaseClientContext);
+//   if (!context) {
+//     throw new Error('useFirebaseClient must be used within a FirebaseClientProvider');
+//   }
+//   return context;
+// }
 
 // Internal state for user authentication
 interface UserAuthState {
@@ -53,7 +54,7 @@ export interface UserHookResult extends UserAuthState {}
 const FirebaseContext = createContext<FirebaseContextState | undefined>(undefined);
 
 export function FirebaseProvider({ children }: { children: ReactNode }) {
-  const firebaseServices = useFirebaseClient(); // Get stable services
+  const firebaseServices = useFirebaseClient(); // Get stable services from client-provider
   const { firebaseApp, firestore, auth } = firebaseServices || {};
 
   const [userState, setUserState] = useState<UserAuthState>({
@@ -65,7 +66,7 @@ export function FirebaseProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!auth) {
-      setUserState({ user: null, isUserLoading: false, isAuthReady: false, userError: new Error("Auth service not available.") });
+      setUserState({ user: null, isUserLoading: false, isAuthReady: true, userError: new Error("Auth service not available.") });
       return;
     }
 

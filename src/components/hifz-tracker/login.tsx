@@ -13,7 +13,7 @@ export function Login() {
   const handleGoogleSignIn = () => {
     if (!auth) return;
     const provider = new GoogleAuthProvider();
-    // Use signInWithRedirect. The loading state is now handled globally on the main page.
+    // Use signInWithRedirect. The global loading state on the main page will handle the UI.
     signInWithRedirect(auth, provider).catch(error => {
        console.error("Error initiating redirect sign in: ", error);
        // The global loading indicator on page.tsx will eventually timeout or the hook will report an error.

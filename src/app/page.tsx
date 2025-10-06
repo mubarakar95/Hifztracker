@@ -85,8 +85,8 @@ export default function Home() {
     deleteDocumentNonBlocking(docRef);
   };
 
-  // Show a loading screen while Firebase is initializing or if a sign-in/sign-out is in progress.
   // This is the single source of truth for the initial loading state.
+  // It waits for Firebase to be ready AND for any user sign-in/out to complete.
   if (!isAuthReady || isUserLoading) {
     return (
       <div className="flex min-h-screen w-full flex-col items-center justify-center">
