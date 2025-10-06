@@ -61,9 +61,9 @@ export function FirebaseProvider({ children }: { children: ReactNode }) {
       try {
         // First, explicitly wait for the redirect result. This is critical.
         // It will resolve with the user if the redirect was successful, or null otherwise.
-        await getRedirectResult(auth);
         // We don't need to do anything with the result directly, because onAuthStateChanged
         // will fire with the correct user state *after* this promise resolves.
+        await getRedirectResult(auth);
       } catch (error) {
         console.error("Error processing redirect result:", error);
         setUserState(prevState => ({ ...prevState, userError: error as Error }));
