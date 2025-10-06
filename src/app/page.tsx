@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { PlusCircle, Loader2 } from "lucide-react";
 import {
   collection,
@@ -48,7 +48,7 @@ export default function Home() {
   const { data: revisionLogs, isLoading: isLoadingRevisions } =
     useCollection<RevisionLog>(revisionsQuery);
 
-  const revisions: Revision[] = useMemoFirebase(() => {
+  const revisions: Revision[] = useMemo(() => {
     if (!revisionLogs) return [];
     return revisionLogs
       .filter((log) => log.juzPart !== undefined && log.juzPart !== null) 
