@@ -43,23 +43,23 @@ export function FirebaseProvider({ children }: { children: ReactNode }) {
 
   const [userState, setUserState] = useState<UserAuthState>({
     user: null,
-    isUserLoading: true, // Start with user loading, as we need to check both redirect and auth state.
+    isUserLoading: true, // Start with user loading
     isAuthReady: false,
-    isVerifyingRedirect: true, // Start in a verifying state
+    isVerifyingRedirect: true, // We start by assuming we might be in a redirect
     userError: null,
   });
 
   useEffect(() => {
     if (!auth) {
-      setUserState({ user: null, isUserifyingRedirect: false, isUserLoading: false, isAuthReady: true, userError: new Error("Auth service not available.") });
+      setUserState({ user: null, isVerifyingRedirect: false, isUserLoading: false, isAuthReady: true, userError: new Error("Auth service not available.") });
       return;
     }
 
     // This effect runs once on mount to handle both the redirect result
-    // and set up the permanent auth state listener.
+    // and set up the permanent auth state listener, in the correct order.
     const processAuth = async () => {
       try {
-        // First, check for the redirect result. This is critical for the redirect flow.
+        // First, explicitly wait for the redirect result. This is critical.
         // It will resolve with the user if the redirect was successful, or null otherwise.
         await getRedirectResult(auth);
         // We don't need to do anything with the result directly, because onAuthStateChanged
@@ -73,7 +73,7 @@ export function FirebaseProvider({ children }: { children: ReactNode }) {
         setUserState(prevState => ({ ...prevState, isVerifyingRedirect: false }));
       }
       
-      // After handling the potential redirect, set up the onAuthStateChanged listener.
+      // AFTER handling the potential redirect, set up the onAuthStateChanged listener.
       // This will be our source of truth for the user's auth state going forward.
       const unsubscribe = onAuthStateChanged(
         auth,
@@ -82,6 +82,7 @@ export function FirebaseProvider({ children }: { children: ReactNode }) {
           setUserState(prevState => ({ ...prevState, user, isUserLoading: false, isAuthReady: true, userError: null }));
         },
         (error) => {
+          console.error("Auth state error:", error);
           setUserState(prevState => ({ ...prevState, user: null, isUserLoading: false, isAuthReady: true, userError: error }));
         }
       );

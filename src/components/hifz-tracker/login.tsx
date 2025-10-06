@@ -26,7 +26,7 @@ export function Login() {
     signInWithRedirect(auth, provider);
   };
   
-  // The main loading states are now handled by src/app/page.tsx
+  // The main loading states are now handled by src/app/page.tsx and src/firebase/provider.tsx
   // This component's only responsibility is to show the UI and trigger sign-in.
   return (
     <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2 xl:min-h-screen">
