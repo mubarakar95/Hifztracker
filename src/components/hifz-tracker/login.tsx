@@ -22,38 +22,36 @@ export function Login() {
   const [isVerifying, setIsVerifying] = useState(true);
 
   useEffect(() => {
-    if (!auth) return;
-    
-    // This hook runs on mount and after a redirect.
-    // getRedirectResult resolves with the user credential on a successful redirect
-    // or null if the user just landed on the page without a redirect.
-    getRedirectResult(auth)
-      .then((result) => {
-        // If result is not null, a sign-in was successful.
-        // The onAuthStateChanged listener in FirebaseProvider will handle updating the user state.
-        // We don't need to do anything with the `result` here.
-      })
-      .catch((error) => {
-        // Handle errors from the redirect.
-        console.error("Error during redirect result processing: ", error);
-      })
-      .finally(() => {
-        // This is the crucial part. We stop showing the loading screen
-        // only after getRedirectResult has finished.
+    // This effect should only run once on mount to check for a redirect result.
+    if (auth) {
+      getRedirectResult(auth)
+        .then((result) => {
+          // If result is not null, a sign-in was successful.
+          // The onAuthStateChanged listener in FirebaseProvider will handle updating the user state.
+        })
+        .catch((error) => {
+          console.error("Error processing redirect result:", error);
+        })
+        .finally(() => {
+          // Whether it succeeded, failed, or was not a redirect, we are done verifying.
+          setIsVerifying(false);
+        });
+    } else {
+        // If auth is not ready yet, we are not verifying.
         setIsVerifying(false);
-      });
+    }
+    // The empty dependency array ensures this runs only once.
   }, [auth]);
 
 
-  const handleGoogleSignIn = async () => {
+  const handleGoogleSignIn = () => {
     if (!auth) return;
     const provider = new GoogleAuthProvider();
-    // We don't need to await this. Firebase handles the redirect.
     signInWithRedirect(auth, provider);
   };
   
-  // While we are verifying the redirect result, show a loading screen.
-  // This prevents the main page from prematurely deciding there's no user.
+  // While getRedirectResult is processing, show a loading screen.
+  // This is crucial to prevent the login UI from flashing before the redirect is handled.
   if (isVerifying) {
     return (
       <div className="flex min-h-screen w-full flex-col items-center justify-center">
