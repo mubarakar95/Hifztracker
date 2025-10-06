@@ -5,13 +5,11 @@ import React, { DependencyList, createContext, useContext, ReactNode, useMemo, u
 import { FirebaseApp } from 'firebase/app';
 import { Firestore } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
-import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
+import { initializeFirebase } from '@/firebase';
+import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 
 interface FirebaseProviderProps {
   children: ReactNode;
-  firebaseApp: FirebaseApp;
-  firestore: Firestore;
-  auth: Auth;
 }
 
 // Internal state for user authentication
@@ -56,12 +54,9 @@ export interface UserHookResult {
 
 const FirebaseContext = createContext<FirebaseContextState | undefined>(undefined);
 
-export function FirebaseProvider({
-  children,
-  firebaseApp,
-  firestore,
-  auth,
-}: FirebaseProviderProps) {
+export function FirebaseProvider({ children }: FirebaseProviderProps) {
+  const { firebaseApp, firestore, auth } = useMemo(() => initializeFirebase(), []);
+
   const [userState, setUserState] = useState<UserAuthState>({
     user: null,
     isUserLoading: true,

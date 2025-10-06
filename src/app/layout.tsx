@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
-import { FirebaseClientProvider } from '@/firebase';
+import { FirebaseProvider } from '@/firebase';
 
 export const metadata: Metadata = {
   title: 'Hifz Tracker',
@@ -28,7 +28,7 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased">
-        <FirebaseClientProvider>{children}</FirebaseClientProvider>
+        <FirebaseProvider>{children}</FirebaseProvider>
         <Toaster />
       </body>
     </html>
