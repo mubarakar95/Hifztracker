@@ -9,42 +9,47 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export function Login() {
-  const { auth, isAuthReady } = useFirebase();
+  const { auth, isAuthReady, isUserLoading } = useFirebase();
   const [isSigningIn, setIsSigningIn] = useState(true);
 
+  // This effect handles the result of the redirect sign-in
   useEffect(() => {
     if (isAuthReady && auth) {
       getRedirectResult(auth)
         .then((result) => {
-          // If result is null, it means the user just landed on the page without
-          // coming from a redirect. If there is a result, the onAuthStateChanged
-          // listener in the provider will handle the user state update.
-          // In either case, we can stop showing the signing-in loader.
+          // If result is null, it means the user just landed on the page and is not
+          // coming from a redirect. The onAuthStateChanged listener in FirebaseProvider
+          // will handle the user state. We can stop showing the loader.
+          // If a result is returned, onAuthStateChanged will also fire and handle the state.
         })
         .catch((error) => {
           console.error("Error getting redirect result: ", error);
         })
         .finally(() => {
+          // No matter the outcome, we are done with the redirect check.
           setIsSigningIn(false);
         });
-    } else if (!isAuthReady) {
-        // Still waiting for auth to be ready, keep showing loader
-        setIsSigningIn(true);
     } else {
-        // Auth is ready, but no auth object, so not signing in.
-        setIsSigningIn(false);
+       // If auth isn't ready, we might be in the middle of the initial load.
+       // We rely on the isUserLoading flag from useFirebase to show a global loader.
+       // But if we are here, we can assume the redirect check isn't active yet.
+       setIsSigningIn(false);
     }
   }, [auth, isAuthReady]);
 
   const handleGoogleSignIn = () => {
     if (!auth) return;
+    setIsSigningIn(true); // Show loader immediately on click
     const provider = new GoogleAuthProvider();
     signInWithRedirect(auth, provider).catch(error => {
        console.error("Error initiating redirect sign in: ", error);
+       setIsSigningIn(false); // If initiation fails, hide loader
     });
   };
 
-  if (!isAuthReady || isSigningIn) {
+  // While waiting for the redirect result to be processed, show a loader.
+  // Also rely on the global isUserLoading state.
+  if (isSigningIn || isUserLoading) {
     return (
       <div className="flex min-h-screen w-full flex-col items-center justify-center bg-background">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />

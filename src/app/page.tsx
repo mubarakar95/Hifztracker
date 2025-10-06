@@ -34,7 +34,7 @@ import { Login } from "@/components/hifz-tracker/login";
 import type { Revision, RevisionLog } from "@/lib/types";
 
 export default function Home() {
-  const { user, firestore, isAuthReady, isLoading: isUserLoading } = useFirebase();
+  const { user, firestore, isAuthReady, isUserLoading } = useFirebase();
   const [isFormOpen, setIsFormOpen] = useState(false);
 
   const revisionsQuery = useMemoFirebase(() => {
