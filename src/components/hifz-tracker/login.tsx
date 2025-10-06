@@ -1,9 +1,14 @@
 
 "use client";
 
-import { GoogleAuthProvider, signInWithRedirect } from "firebase/auth";
+import { useState } from "react";
 import Image from "next/image";
-import { BookOpen } from "lucide-react";
+import { BookOpen, Loader2 } from "lucide-react";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+} from "firebase/auth";
+
 import { useFirebase } from "@/firebase";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,58 +18,169 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
 import placeholderImage from "@/lib/placeholder-images.json";
 
 export function Login() {
   const { auth } = useFirebase();
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-  const handleGoogleSignIn = () => {
-    if (!auth) return;
-    const provider = new GoogleAuthProvider();
-    // We initiate the redirect. The FirebaseProvider will handle the result
-    // when the user comes back to the app.
-    signInWithRedirect(auth, provider);
+  const handleAuthAction = async (action: "signIn" | "signUp") => {
+    if (!auth || !email || !password) {
+      toast({
+        variant: "destructive",
+        title: "Missing Information",
+        description: "Please enter both email and password.",
+      });
+      return;
+    }
+    setIsLoading(true);
+    try {
+      if (action === "signUp") {
+        await createUserWithEmailAndPassword(auth, email, password);
+        toast({
+          title: "Account Created",
+          description: "You have been successfully signed up!",
+        });
+      } else {
+        await signInWithEmailAndPassword(auth, email, password);
+      }
+      // No need to show a success toast on sign-in, as the user will be redirected.
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Authentication Failed",
+        description:
+          error.code === "auth/user-not-found" || error.code === 'auth/invalid-credential'
+            ? "No account found with that email. Please sign up."
+            : error.code === "auth/wrong-password"
+            ? "Incorrect password. Please try again."
+            : error.code === "auth/email-already-in-use"
+            ? "An account with this email already exists. Please sign in."
+            : "An error occurred. Please try again.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
-  
-  // The main loading states are now handled by src/app/page.tsx and src/firebase/provider.tsx
-  // This component's only responsibility is to show the UI and trigger sign-in.
+
   return (
     <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2 xl:min-h-screen">
       <div className="flex items-center justify-center py-12">
         <div className="mx-auto grid w-[350px] gap-6">
-           <Card className="w-full max-w-sm">
-            <CardHeader className="text-center">
-                <div className="mb-4 flex justify-center">
-                    <BookOpen className="h-12 w-12 text-primary" />
-                </div>
-                <CardTitle className="text-2xl font-headline">
-                    Hifz Tracker
-                </CardTitle>
-                <CardDescription>
-                    Sign in to track your Quran memorization journey.
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
-                <Button className="w-full" onClick={handleGoogleSignIn}>
-                    <svg
-                    className="mr-2 h-4 w-4"
-                    aria-hidden="true"
-                    focusable="false"
-                    data-prefix="fab"
-                    data-icon="google"
-                    role="img"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 488 512"
-                    >
-                    <path
-                        fill="currentColor"
-                        d="M488 261.8C488 403.3 381.5 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 126 23.4 172.9 61.9l-67.4 64.8C317.3 99.6 283.7 84 248 84c-84.3 0-152.3 67.8-152.3 151.7s68 151.7 152.3 151.7c99.1 0 129.2-80.3 132.3-118.1H248v-85.3h236.1c2.3 12.7 3.9 26.9 3.9 41.4z"
-                    ></path>
-                    </svg>
-                    Sign in with Google
-                </Button>
-            </CardContent>
-           </Card>
+          <div className="grid gap-2 text-center">
+            <BookOpen className="h-12 w-12 text-primary mx-auto" />
+            <h1 className="text-3xl font-bold font-headline">Hifz Tracker</h1>
+            <p className="text-balance text-muted-foreground">
+              Track your Quran memorization and revision journey
+            </p>
+          </div>
+          <Tabs defaultValue="sign-in" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="sign-in">Sign In</TabsTrigger>
+              <TabsTrigger value="sign-up">Sign Up</TabsTrigger>
+            </TabsList>
+            <TabsContent value="sign-in">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Sign In</CardTitle>
+                  <CardDescription>
+                    Enter your email below to login to your account
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="email-signin">Email</Label>
+                    <Input
+                      id="email-signin"
+                      type="email"
+                      placeholder="m@example.com"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      disabled={isLoading}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="password-signin">Password</Label>
+                    <Input
+                      id="password-signin"
+                      type="password"
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      disabled={isLoading}
+                    />
+                  </div>
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    disabled={isLoading}
+                    onClick={() => handleAuthAction("signIn")}
+                  >
+                    {isLoading ? (
+                      <Loader2 className="animate-spin" />
+                    ) : (
+                      "Sign In"
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+            </TabsContent>
+            <TabsContent value="sign-up">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Sign Up</CardTitle>
+                  <CardDescription>
+                    Create an account to start tracking your progress
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="email-signup">Email</Label>
+                    <Input
+                      id="email-signup"
+                      type="email"
+                      placeholder="m@example.com"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      disabled={isLoading}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="password-signup">Password</Label>
+                    <Input
+                      id="password-signup"
+                      type="password"
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      disabled={isLoading}
+                    />
+                  </div>
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    disabled={isLoading}
+                    onClick={() => handleAuthAction("signUp")}
+                  >
+                    {isLoading ? (
+                      <Loader2 className="animate-spin" />
+                    ) : (
+                      "Create Account"
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
       <div className="hidden bg-muted lg:block">
