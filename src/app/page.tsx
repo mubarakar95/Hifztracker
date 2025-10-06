@@ -85,7 +85,8 @@ export default function Home() {
     deleteDocumentNonBlocking(docRef);
   };
 
-  // Show a loading screen while Firebase is initializing or if the user is in the process of signing in.
+  // Show a loading screen while Firebase is initializing or if a sign-in/sign-out is in progress.
+  // This is the single source of truth for the initial loading state.
   if (!isAuthReady || isUserLoading) {
     return (
       <div className="flex min-h-screen w-full flex-col items-center justify-center">
@@ -100,7 +101,7 @@ export default function Home() {
     return <Login />;
   }
 
-  // If we have a user but are still waiting for their data, show a loading screen.
+  // If we have a user but are still waiting for their data, show a specific loading screen.
   if (isLoadingRevisions) {
      return (
       <div className="flex min-h-screen w-full flex-col items-center justify-center">

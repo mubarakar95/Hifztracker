@@ -1,62 +1,24 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
-import { GoogleAuthProvider, signInWithRedirect, getRedirectResult } from "firebase/auth";
-import { BookOpen, Loader2 } from "lucide-react";
+import { GoogleAuthProvider, signInWithRedirect } from "firebase/auth";
+import { BookOpen } from "lucide-react";
 import { useFirebase } from "@/firebase";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export function Login() {
-  const { auth, isAuthReady, isUserLoading } = useFirebase();
-  const [isSigningIn, setIsSigningIn] = useState(true);
-
-  // This effect handles the result of the redirect sign-in
-  useEffect(() => {
-    if (isAuthReady && auth) {
-      getRedirectResult(auth)
-        .then((result) => {
-          // If result is null, it means the user just landed on the page and is not
-          // coming from a redirect. The onAuthStateChanged listener in FirebaseProvider
-          // will handle the user state. We can stop showing the loader.
-          // If a result is returned, onAuthStateChanged will also fire and handle the state.
-        })
-        .catch((error) => {
-          console.error("Error getting redirect result: ", error);
-        })
-        .finally(() => {
-          // No matter the outcome, we are done with the redirect check.
-          setIsSigningIn(false);
-        });
-    } else {
-       // If auth isn't ready, we might be in the middle of the initial load.
-       // We rely on the isUserLoading flag from useFirebase to show a global loader.
-       // But if we are here, we can assume the redirect check isn't active yet.
-       setIsSigningIn(false);
-    }
-  }, [auth, isAuthReady]);
+  const { auth } = useFirebase();
 
   const handleGoogleSignIn = () => {
     if (!auth) return;
-    setIsSigningIn(true); // Show loader immediately on click
     const provider = new GoogleAuthProvider();
+    // Use signInWithRedirect. The loading state is now handled globally on the main page.
     signInWithRedirect(auth, provider).catch(error => {
        console.error("Error initiating redirect sign in: ", error);
-       setIsSigningIn(false); // If initiation fails, hide loader
+       // The global loading indicator on page.tsx will eventually timeout or the hook will report an error.
     });
   };
-
-  // While waiting for the redirect result to be processed, show a loader.
-  // Also rely on the global isUserLoading state.
-  if (isSigningIn || isUserLoading) {
-    return (
-      <div className="flex min-h-screen w-full flex-col items-center justify-center bg-background">
-        <Loader2 className="h-16 w-16 animate-spin text-primary" />
-        <p className="mt-4 text-lg">Signing in...</p>
-      </div>
-    );
-  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
