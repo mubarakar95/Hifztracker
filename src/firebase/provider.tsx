@@ -43,7 +43,7 @@ export function FirebaseProvider({ children }: { children: ReactNode }) {
 
   const [userState, setUserState] = useState<UserAuthState>({
     user: null,
-    isUserLoading: true,
+    isUserLoading: true, // Start with user loading, as we need to check both redirect and auth state.
     isAuthReady: false,
     isVerifyingRedirect: true, // Start in a verifying state
     userError: null,
@@ -51,36 +51,56 @@ export function FirebaseProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!auth) {
-      setUserState({ user: null, isUserLoading: false, isAuthReady: true, isVerifyingRedirect: false, userError: new Error("Auth service not available.") });
+      setUserState({ user: null, isUserifyingRedirect: false, isUserLoading: false, isAuthReady: true, userError: new Error("Auth service not available.") });
       return;
     }
-    
-    // First, check for the redirect result. This is critical for the redirect flow.
-    getRedirectResult(auth)
-      .catch((error) => {
-        // Handle potential errors from the redirect result, e.g., if the user
-        // closed the sign-in window from a different provider.
-        console.error("Error processing redirect result:", error);
-        setUserState(prevState => ({ ...prevState, userError: error }));
-      })
-      .finally(() => {
-         // Once the redirect result has been processed (or if there was none),
-         // we can stop verifying and rely on onAuthStateChanged.
-        setUserState(prevState => ({ ...prevState, isVerifyingRedirect: false }));
-      });
-      
-    // Then, set up the onAuthStateChanged listener.
-    const unsubscribe = onAuthStateChanged(
-      auth,
-      (user) => {
-        setUserState(prevState => ({ ...prevState, user, isUserLoading: false, isAuthReady: true, userError: null }));
-      },
-      (error) => {
-        setUserState(prevState => ({ ...prevState, user: null, isUserLoading: false, isAuthReady: true, userError: error }));
-      }
-    );
 
-    return () => unsubscribe();
+    // This effect runs once on mount to handle both the redirect result
+    // and set up the permanent auth state listener.
+    const processAuth = async () => {
+      try {
+        // First, check for the redirect result. This is critical for the redirect flow.
+        // It will resolve with the user if the redirect was successful, or null otherwise.
+        await getRedirectResult(auth);
+        // We don't need to do anything with the result directly, because onAuthStateChanged
+        // will fire with the correct user state *after* this promise resolves.
+      } catch (error) {
+        console.error("Error processing redirect result:", error);
+        setUserState(prevState => ({ ...prevState, userError: error as Error }));
+      } finally {
+        // Once the redirect result has been processed (or if there was none),
+        // we can stop the redirect verification state.
+        setUserState(prevState => ({ ...prevState, isVerifyingRedirect: false }));
+      }
+      
+      // After handling the potential redirect, set up the onAuthStateChanged listener.
+      // This will be our source of truth for the user's auth state going forward.
+      const unsubscribe = onAuthStateChanged(
+        auth,
+        (user) => {
+          // When this fires, Firebase has settled the auth state.
+          setUserState(prevState => ({ ...prevState, user, isUserLoading: false, isAuthReady: true, userError: null }));
+        },
+        (error) => {
+          setUserState(prevState => ({ ...prevState, user: null, isUserLoading: false, isAuthReady: true, userError: error }));
+        }
+      );
+
+      return unsubscribe;
+    };
+    
+    let unsubscribe: (() => void) | undefined;
+    processAuth().then(unsub => {
+      if (unsub) {
+        unsubscribe = unsub;
+      }
+    });
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
   }, [auth]);
 
   const contextValue: FirebaseContextState = {
