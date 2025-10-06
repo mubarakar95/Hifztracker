@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
@@ -7,23 +6,6 @@ import { Firestore } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 import { useFirebaseClient } from './client-provider';
-
-// This context will be provided by the new FirebaseClientProvider
-// const FirebaseClientContext = createContext<{
-//   firebaseApp: FirebaseApp;
-//   firestore: Firestore;
-//   auth: Auth;
-// } | null>(null);
-
-// export const FirebaseClientProvider = FirebaseClientContext.Provider;
-
-// export function useFirebaseClient() {
-//   const context = useContext(FirebaseClientContext);
-//   if (!context) {
-//     throw new Error('useFirebaseClient must be used within a FirebaseClientProvider');
-//   }
-//   return context;
-// }
 
 // Internal state for user authentication
 interface UserAuthState {
