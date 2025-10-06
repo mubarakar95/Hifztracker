@@ -85,8 +85,8 @@ export default function Home() {
     deleteDocumentNonBlocking(docRef);
   };
 
-  // This is the single source of truth for the initial loading state.
-  // It waits for Firebase to be ready AND for any user sign-in/out to complete.
+  // Wait for Firebase to be ready and for any sign-in/out to complete.
+  // This is the primary loading gate for the entire application.
   if (!isAuthReady || isUserLoading) {
     return (
       <div className="flex min-h-screen w-full flex-col items-center justify-center">
@@ -96,7 +96,8 @@ export default function Home() {
     );
   }
 
-  // If auth is ready and there's no user, show the login page.
+  // If Firebase is ready but there's no user, show the login page.
+  // The Login component itself will handle the post-redirect verification state.
   if (!user) {
     return <Login />;
   }
@@ -111,7 +112,7 @@ export default function Home() {
     );
   }
 
-  // If auth is ready and we have a user and their data, show the dashboard.
+  // If auth is ready, we have a user, and their data is loaded, show the dashboard.
   return (
     <div className="flex min-h-screen w-full flex-col">
       <AppHeader revisions={revisions} />

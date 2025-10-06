@@ -22,36 +22,41 @@ export function Login() {
   const [isVerifying, setIsVerifying] = useState(true);
 
   useEffect(() => {
-    // This effect should only run once on mount to check for a redirect result.
+    // This effect runs once on mount to check for a redirect result.
+    // This is the key to handling the state after returning from Google sign-in.
     if (auth) {
       getRedirectResult(auth)
         .then((result) => {
           // If result is not null, a sign-in was successful.
-          // The onAuthStateChanged listener in FirebaseProvider will handle updating the user state.
+          // The onAuthStateChanged listener in FirebaseProvider will handle updating the app's user state.
+          // We don't need to do anything with the result here.
         })
         .catch((error) => {
+          // Handle specific errors if necessary, e.g., account-exists-with-different-credential
           console.error("Error processing redirect result:", error);
         })
         .finally(() => {
-          // Whether it succeeded, failed, or was not a redirect, we are done verifying.
+          // No matter the outcome, the verification process is complete.
+          // This allows the login UI to be shown if the sign-in was not successful.
           setIsVerifying(false);
         });
     } else {
-        // If auth is not ready yet, we are not verifying.
+        // If auth is not ready yet for some reason, we stop "verifying" to avoid an infinite loader.
         setIsVerifying(false);
     }
-    // The empty dependency array ensures this runs only once.
+    // The empty dependency array ensures this effect runs only once on component mount.
   }, [auth]);
 
 
   const handleGoogleSignIn = () => {
     if (!auth) return;
     const provider = new GoogleAuthProvider();
+    // We initiate the redirect. The useEffect above will handle the result when the user comes back.
     signInWithRedirect(auth, provider);
   };
   
-  // While getRedirectResult is processing, show a loading screen.
-  // This is crucial to prevent the login UI from flashing before the redirect is handled.
+  // While getRedirectResult is processing, it's crucial to show a loading screen.
+  // This prevents the login UI from flashing before Firebase has confirmed the auth state.
   if (isVerifying) {
     return (
       <div className="flex min-h-screen w-full flex-col items-center justify-center">
@@ -61,6 +66,7 @@ export function Login() {
     );
   }
 
+  // If we are done verifying and there's no user, show the actual login UI.
   return (
     <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2 xl:min-h-screen">
       <div className="flex items-center justify-center py-12">
