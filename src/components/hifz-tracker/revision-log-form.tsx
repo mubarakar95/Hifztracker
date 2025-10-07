@@ -84,9 +84,9 @@ export function RevisionLogForm({ onSubmit }: RevisionLogFormProps) {
                 <SelectContent>
                   {juzPartStaticData.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
-                       <div className="flex w-full items-center justify-between">
+                       <div className="flex w-full items-center justify-start">
                         <div className="flex items-center gap-4">
-                           <div className="flex flex-col text-left">
+                           <div className="flex w-24 flex-col text-left">
                             <span className="font-medium">Juz {option.juz}</span>
                             <span className="text-xs text-muted-foreground">{option.juzName}</span>
                           </div>
