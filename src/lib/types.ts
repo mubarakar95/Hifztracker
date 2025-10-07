@@ -58,10 +58,10 @@ export const juzArabicNames = new Map([
 export const juzPartStaticData = Array.from({ length: 30 }, (_, i) => i + 1).flatMap(juz => {
     const juzName = juzArabicNames.get(juz) || `Juz ${juz}`;
     return [
-        { value: `${(juz - 1) * 4 + 1}`, label: `Juz ${juz} - Part 1`, juzName, half: "First Half" as const, part: 1 },
-        { value: `${(juz - 1) * 4 + 2}`, label: `Juz ${juz} - Part 2`, juzName, half: "First Half" as const, part: 2 },
-        { value: `${(juz - 1) * 4 + 3}`, label: `Juz ${juz} - Part 3`, juzName, half: "Second Half" as const, part: 3 },
-        { value: `${(juz - 1) * 4 + 4}`, label: `Juz ${juz} - Part 4`, juzName, half: "Second Half" as const, part: 4 },
+        { value: `${(juz - 1) * 4 + 1}`, label: `Juz ${juz} - Part 1`, juz, juzName, half: "First Half" as const, part: 1 },
+        { value: `${(juz - 1) * 4 + 2}`, label: `Juz ${juz} - Part 2`, juz, juzName, half: "First Half" as const, part: 2 },
+        { value: `${(juz - 1) * 4 + 3}`, label: `Juz ${juz} - Part 3`, juz, juzName, half: "Second Half" as const, part: 3 },
+        { value: `${(juz - 1) * 4 + 4}`, label: `Juz ${juz} - Part 4`, juz, juzName, half: "Second Half" as const, part: 4 },
     ]
 });
 

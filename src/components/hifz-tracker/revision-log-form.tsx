@@ -45,7 +45,7 @@ const formSchema = z.object({
 });
 
 type RevisionLogFormProps = {
-  onSubmit: (data: Omit<Revision, "id">) => void;
+  onSubmit: (data: Omit<Revision, "id" | "userId">) => void;
 };
 
 export function RevisionLogForm({ onSubmit }: RevisionLogFormProps) {
@@ -85,10 +85,10 @@ export function RevisionLogForm({ onSubmit }: RevisionLogFormProps) {
                     <SelectItem key={option.value} value={option.value}>
                       <div className="flex items-center justify-between w-full">
                         <div className="flex items-center gap-2">
-                           <span>{option.juzName}</span>
+                           <span>Juz {option.juz} - Part {option.part}</span>
                            <Badge variant={option.half === "First Half" ? "secondary" : "outline" }>{option.half}</Badge>
                         </div>
-                        <span>Part {option.part}</span>
+                        <span className="text-xs text-muted-foreground">{option.juzName}</span>
                       </div>
                     </SelectItem>
                   ))}
