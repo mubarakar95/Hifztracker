@@ -33,6 +33,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import type { Revision } from "@/lib/types";
+import { Badge } from "../ui/badge";
 
 const formSchema = z.object({
   juzPart: z.string().min(1, { message: "Please select a juz part." }),
@@ -82,7 +83,13 @@ export function RevisionLogForm({ onSubmit }: RevisionLogFormProps) {
                 <SelectContent>
                   {juzPartStaticData.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
-                      {option.label}
+                      <div className="flex items-center justify-between w-full">
+                        <div className="flex items-center gap-2">
+                           <span>{option.juzName}</span>
+                           <Badge variant={option.half === "First Half" ? "secondary" : "outline" }>{option.half}</Badge>
+                        </div>
+                        <span>Part {option.part}</span>
+                      </div>
                     </SelectItem>
                   ))}
                 </SelectContent>

@@ -20,17 +20,6 @@ export type RevisionLog = {
     comments?: string;
 }
 
-// All 120 quarter-juz identifiers and labels
-export const juzPartStaticData = Array.from({ length: 30 }, (_, i) => i + 1).flatMap(juz => [
-    { value: `${(juz - 1) * 4 + 1}`, label: `Juz ${juz} - Part 1` },
-    { value: `${(juz - 1) * 4 + 2}`, label: `Juz ${juz} - Part 2` },
-    { value: `${(juz - 1) * 4 + 3}`, label: `Juz ${juz} - Part 3` },
-    { value: `${(juz - 1) * 4 + 4}`, label: `Juz ${juz} - Part 4` },
-]);
-
-// A map for quick label lookup from a quarter-juz value
-export const juzPartMap = new Map(juzPartStaticData.map(item => [item.value, item.label]));
-
 // A map for Juz names in Arabic
 export const juzArabicNames = new Map([
   [1, 'الم'],
@@ -64,3 +53,18 @@ export const juzArabicNames = new Map([
   [29, 'تبارك الذي'],
   [30, 'عمّ'],
 ]);
+
+// All 120 quarter-juz identifiers and labels
+export const juzPartStaticData = Array.from({ length: 30 }, (_, i) => i + 1).flatMap(juz => {
+    const juzName = juzArabicNames.get(juz) || `Juz ${juz}`;
+    return [
+        { value: `${(juz - 1) * 4 + 1}`, label: `Juz ${juz} - Part 1`, juzName, half: "First Half" as const, part: 1 },
+        { value: `${(juz - 1) * 4 + 2}`, label: `Juz ${juz} - Part 2`, juzName, half: "First Half" as const, part: 2 },
+        { value: `${(juz - 1) * 4 + 3}`, label: `Juz ${juz} - Part 3`, juzName, half: "Second Half" as const, part: 3 },
+        { value: `${(juz - 1) * 4 + 4}`, label: `Juz ${juz} - Part 4`, juzName, half: "Second Half" as const, part: 4 },
+    ]
+});
+
+
+// A map for quick label lookup from a quarter-juz value
+export const juzPartMap = new Map(juzPartStaticData.map(item => [item.value, item.label]));
