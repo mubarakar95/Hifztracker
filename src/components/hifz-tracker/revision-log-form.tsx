@@ -1,3 +1,4 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -83,12 +84,17 @@ export function RevisionLogForm({ onSubmit }: RevisionLogFormProps) {
                 <SelectContent>
                   {juzPartStaticData.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
-                      <div className="flex items-center justify-between w-full">
-                        <div className="flex items-center gap-2">
-                           <span>Juz {option.juz} - Part {option.part}</span>
-                           <Badge variant={option.half === "First Half" ? "secondary" : "outline" }>{option.half}</Badge>
+                       <div className="flex w-full items-center justify-between">
+                        <div className="flex items-center gap-4">
+                           <div className="flex flex-col text-left">
+                            <span className="font-medium">Juz {option.juz}</span>
+                            <span className="text-xs text-muted-foreground">{option.juzName}</span>
+                          </div>
+                           <div className="flex items-center gap-2">
+                             <span>Part {option.part}</span>
+                            <Badge variant={option.half === "First Half" ? "secondary" : "outline" }>{option.half}</Badge>
+                          </div>
                         </div>
-                        <span className="text-xs text-muted-foreground">{option.juzName}</span>
                       </div>
                     </SelectItem>
                   ))}
