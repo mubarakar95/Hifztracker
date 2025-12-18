@@ -105,66 +105,62 @@ export function RevisionLogForm({ onSubmit }: RevisionLogFormProps) {
                 <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
                   <ScrollArea className="h-72">
                     <div className="p-1">
-                      {juzPartStaticData.map((option) => (
-                        <FormField
-                          key={option.value}
-                          control={form.control}
-                          name="juzParts"
-                          render={({ field }) => {
-                            return (
-                              <FormItem
-                                key={option.value}
-                                className="flex flex-row items-center space-x-3 space-y-0 rounded-md px-3 py-2 hover:bg-muted"
-                              >
-                                <FormControl>
-                                  <Checkbox
-                                    checked={field.value?.includes(option.value)}
-                                    onCheckedChange={(checked) => {
-                                      return checked
-                                        ? field.onChange([
-                                            ...(field.value || []),
-                                            option.value,
-                                          ])
-                                        : field.onChange(
-                                            field.value?.filter(
-                                              (value) => value !== option.value
-                                            )
-                                          );
-                                    }}
-                                  />
-                                </FormControl>
-                                <Label
-                                  htmlFor={option.value}
-                                  className="w-full cursor-pointer"
-                                >
-                                  <div className="flex w-full items-center justify-start">
-                                    <div className="flex w-24 flex-col text-left">
-                                      <span className="font-medium">
-                                        Juz {option.juz}
-                                      </span>
-                                      <span className="text-xs text-muted-foreground">
-                                        {option.juzName}
-                                      </span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                      <span>Part {option.part}</span>
-                                      <Badge
-                                        variant={
-                                          option.half === "First Half"
-                                            ? "secondary"
-                                            : "outline"
-                                        }
-                                      >
-                                        {option.half}
-                                      </Badge>
-                                    </div>
-                                  </div>
-                                </Label>
-                              </FormItem>
-                            );
-                          }}
-                        />
-                      ))}
+                      {juzPartStaticData.map((option) => {
+                        const isChecked = field.value?.includes(option.value);
+                        return (
+                          <div
+                            key={option.value}
+                            className="flex flex-row items-center space-x-3 space-y-0 rounded-md px-3 py-2 hover:bg-muted"
+                          >
+                            <Checkbox
+                              id={option.value}
+                              checked={isChecked}
+                              onCheckedChange={(checked) => {
+                                const currentSelection = field.value || [];
+                                if (checked) {
+                                  field.onChange([
+                                    ...currentSelection,
+                                    option.value,
+                                  ]);
+                                } else {
+                                  field.onChange(
+                                    currentSelection.filter(
+                                      (value) => value !== option.value
+                                    )
+                                  );
+                                }
+                              }}
+                            />
+                            <Label
+                              htmlFor={option.value}
+                              className="w-full cursor-pointer"
+                            >
+                              <div className="flex w-full items-center justify-start">
+                                <div className="flex w-24 flex-col text-left">
+                                  <span className="font-medium">
+                                    Juz {option.juz}
+                                  </span>
+                                  <span className="text-xs text-muted-foreground">
+                                    {option.juzName}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <span>Part {option.part}</span>
+                                  <Badge
+                                    variant={
+                                      option.half === "First Half"
+                                        ? "secondary"
+                                        : "outline"
+                                    }
+                                  >
+                                    {option.half}
+                                  </Badge>
+                                </div>
+                              </div>
+                            </Label>
+                          </div>
+                        );
+                      })}
                     </div>
                   </ScrollArea>
                 </PopoverContent>
