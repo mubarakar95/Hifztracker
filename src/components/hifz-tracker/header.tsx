@@ -1,6 +1,8 @@
+
 "use client";
 
 import { BookOpen, Target, Repeat, LogOut } from "lucide-react";
+import Link from "next/link";
 import { signOut } from "firebase/auth";
 import type { Revision } from "@/lib/types";
 import { juzPartStaticData, juzPartMap } from "@/lib/types";
@@ -119,9 +121,15 @@ export function AppHeader({ revisions }: { revisions: Revision[] }) {
   return (
     <header className="flex flex-col border-b bg-card">
       <div className="flex h-16 items-center justify-between px-4 md:px-6">
-        <div className="flex items-center gap-2">
-          <BookOpen className="h-6 w-6 text-primary" />
-          <h1 className="font-headline text-xl font-semibold">Hifz Tracker</h1>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <BookOpen className="h-6 w-6 text-primary" />
+            <h1 className="font-headline text-xl font-semibold">Hifz Tracker</h1>
+          </div>
+          <nav className="hidden md:flex items-center gap-4 text-sm font-medium">
+            <Link href="/" className="text-foreground hover:text-primary transition-colors">Dashboard</Link>
+            <Link href="/quran" className="text-muted-foreground hover:text-primary transition-colors">Quran</Link>
+          </nav>
         </div>
         {user && (
           <DropdownMenu>
