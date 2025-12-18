@@ -65,18 +65,19 @@ export default function Home() {
       .sort((a, b) => b.date.getTime() - a.date.getTime());
   }, [revisionLogs]);
 
-  const addRevision = (newRevisionData: Omit<Revision, "id" | "userId">) => {
+  const addRevision = (newRevisionData: Omit<Revision, "id" | "userId">, juzPart: string) => {
     if (!user || !firestore) return;
     const revisionLogsCollection = collection(firestore, "revisionLogs");
     const newLog: Omit<RevisionLog, "id"> = {
       userId: user.uid,
-      juzPart: parseInt(newRevisionData.juzPart, 10),
+      juzPart: parseInt(juzPart, 10),
       revisionDate: Timestamp.fromDate(newRevisionData.date),
       qualityRating: newRevisionData.quality,
       comments: newRevisionData.comments,
     };
     addDocumentNonBlocking(revisionLogsCollection, newLog);
-    setIsFormOpen(false);
+    // Keep form open for multiple batches, close it manually
+    // setIsFormOpen(false); 
   };
 
   const deleteRevision = (id: string) => {
@@ -129,9 +130,9 @@ export default function Home() {
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
               <DialogHeader>
-                <DialogTitle>Log New Revision</DialogTitle>
+                <DialogTitle>Log New Revision(s)</DialogTitle>
                 <DialogDescription>
-                  Record your memorization or revision progress.
+                  Record your memorization or revision progress for one or more parts.
                 </DialogDescription>
               </DialogHeader>
               <RevisionLogForm onSubmit={addRevision} />
