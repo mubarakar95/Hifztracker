@@ -32,7 +32,8 @@ const SelectableQuadrant = ({
       d={pathData}
       fill={color}
       className={cn(
-        "cursor-pointer transition-opacity hover:opacity-80",
+        "cursor-pointer transition-all",
+        "hover:stroke-accent hover:stroke-[4px]",
         isSelected && "stroke-background stroke-2"
       )}
       onClick={() => onSelect(juzPartValue.toString())}
