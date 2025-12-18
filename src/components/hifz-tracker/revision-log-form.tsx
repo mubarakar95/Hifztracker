@@ -6,10 +6,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, ChevronsUpDown } from "lucide-react";
+import { Calendar as CalendarIcon, ChevronsUpDown, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { juzPartStaticData, RevisionQualities } from "@/lib/types";
+import { RevisionQualities } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -28,10 +28,16 @@ import { Calendar } from "@/components/ui/calendar";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import type { Revision } from "@/lib/types";
-import { Badge } from "../ui/badge";
-import { ScrollArea } from "../ui/scroll-area";
-import { Checkbox } from "../ui/checkbox";
-import { Label } from "../ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose,
+  DialogFooter
+} from "../ui/dialog";
+import { JuzSelectionDialog } from "./juz-selection-dialog";
 
 const formSchema = z.object({
   juzParts: z
@@ -49,6 +55,7 @@ type RevisionLogFormProps = {
 };
 
 export function RevisionLogForm({ onSubmit }: RevisionLogFormProps) {
+  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -60,12 +67,15 @@ export function RevisionLogForm({ onSubmit }: RevisionLogFormProps) {
 
   function handleFormSubmit(values: z.infer<typeof formSchema>) {
     values.juzParts.forEach((juzPart) => {
-      onSubmit({
-        date: values.date,
-        quality: values.quality,
-        comments: values.comments,
-        juzPart: juzPart,
-      }, juzPart);
+      onSubmit(
+        {
+          date: values.date,
+          quality: values.quality,
+          comments: values.comments,
+          juzPart: juzPart,
+        },
+        juzPart
+      );
     });
     form.reset({ date: new Date(), comments: "", juzParts: [] });
   }
@@ -84,87 +94,40 @@ export function RevisionLogForm({ onSubmit }: RevisionLogFormProps) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Juz Parts (5 pages)</FormLabel>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      className={cn(
-                        "w-full justify-between",
-                        !field.value?.length && "text-muted-foreground"
-                      )}
-                    >
-                      {selectedPartsCount > 0
-                        ? `${selectedPartsCount} part(s) selected`
-                        : "Select juz parts"}
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                  <ScrollArea className="h-72">
-                    <div className="p-1">
-                      {juzPartStaticData.map((option) => {
-                        const isChecked = field.value?.includes(option.value);
-                        return (
-                          <div
-                            key={option.value}
-                            className="flex flex-row items-center space-x-3 space-y-0 rounded-md px-3 py-2 hover:bg-muted"
-                          >
-                            <Checkbox
-                              id={option.value}
-                              checked={isChecked}
-                              onCheckedChange={(checked) => {
-                                const currentSelection = field.value || [];
-                                if (checked) {
-                                  field.onChange([
-                                    ...currentSelection,
-                                    option.value,
-                                  ]);
-                                } else {
-                                  field.onChange(
-                                    currentSelection.filter(
-                                      (value) => value !== option.value
-                                    )
-                                  );
-                                }
-                              }}
-                            />
-                            <Label
-                              htmlFor={option.value}
-                              className="w-full cursor-pointer"
-                            >
-                              <div className="flex w-full items-center justify-start">
-                                <div className="flex w-24 flex-col text-left">
-                                  <span className="font-medium">
-                                    Juz {option.juz}
-                                  </span>
-                                  <span className="text-xs text-muted-foreground">
-                                    {option.juzName}
-                                  </span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <span>Part {option.part}</span>
-                                  <Badge
-                                    variant={
-                                      option.half === "First Half"
-                                        ? "secondary"
-                                        : "outline"
-                                    }
-                                  >
-                                    {option.half}
-                                  </Badge>
-                                </div>
-                              </div>
-                            </Label>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </ScrollArea>
-                </PopoverContent>
-              </Popover>
+              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    className={cn(
+                      "w-full justify-between",
+                      !field.value?.length && "text-muted-foreground"
+                    )}
+                  >
+                    {selectedPartsCount > 0
+                      ? `${selectedPartsCount} part(s) selected`
+                      : "Select juz parts"}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-3xl">
+                  <DialogHeader>
+                    <DialogTitle>Select Juz Parts for Revision</DialogTitle>
+                  </DialogHeader>
+
+                  <JuzSelectionDialog
+                    selectedParts={field.value || []}
+                    onSelectedPartsChange={field.onChange}
+                  />
+
+                  <DialogFooter>
+                     <Button variant="outline" onClick={() => field.onChange([])}>Clear</Button>
+                    <DialogClose asChild>
+                      <Button>Done</Button>
+                    </DialogClose>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
               <FormMessage />
             </FormItem>
           )}
