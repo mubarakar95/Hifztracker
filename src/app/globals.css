@@ -85,4 +85,9 @@ body {
   body {
     @apply bg-background text-foreground;
   }
+  .font-arabic {
+    font-family: 'Noto Naskh Arabic', serif;
+    direction: rtl;
+    line-height: 2.5;
+  }
 }
