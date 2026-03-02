@@ -2,7 +2,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { format, subDays } from "date-fns";
+import { format, subDays, differenceInDays } from "date-fns";
 import type { Revision } from "@/lib/types";
 import {
   Card,
@@ -28,6 +28,8 @@ import {
 import {
   TooltipProvider,
 } from "@/components/ui/tooltip";
+import { Slider } from "@/components/ui/slider";
+import { Label } from "@/components/ui/label";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { JuzCircle } from "./juz-circle";
 
@@ -50,7 +52,8 @@ export function JourneyOverview({ revisions }: JourneyOverviewProps) {
     part: number;
     label: string;
   } | null>(null);
-  const [timeFrame, setTimeFrame] = useState<string>("30");
+  const [timeFrame, setTimeFrame] = useState<string>("all");
+  const [rotationDays, setRotationDays] = useState<number>(15);
 
   const filteredRevisions = useMemo(() => {
     if (timeFrame === "all") {
@@ -63,9 +66,9 @@ export function JourneyOverview({ revisions }: JourneyOverviewProps) {
 
   const revisionsByJuzPart = useMemo(() => {
     const map = new Map<string, Revision>();
+    // Since sorted by date desc in parent, the first occurrence is the latest
     filteredRevisions.forEach((revision) => {
-      const existing = map.get(revision.juzPart);
-      if (!existing || revision.date > existing.date) {
+      if (!map.has(revision.juzPart)) {
         map.set(revision.juzPart, revision);
       }
     });
@@ -87,21 +90,36 @@ export function JourneyOverview({ revisions }: JourneyOverviewProps) {
   return (
     <Card>
       <CardHeader>
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <CardTitle>Journey Overview</CardTitle>
+        <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex-1">
+            <CardTitle>Journey Freshness</CardTitle>
             <CardDescription className="mt-1.5">
-              A visual summary of your revision progress. Each circle is a Juz,
-              and each quadrant is 5 pages.{" "}
-              {isMobile
-                ? "Tap a quadrant for details."
-                : "Hover over a quadrant for details."}
+              Colors represent how recently a part was revised based on your cycle.
+              <span className="block mt-2 font-medium text-foreground">
+                Green: Fresh | Yellow: Due Soon | Red: Overdue
+              </span>
             </CardDescription>
           </div>
-          <div className="mt-4 sm:mt-0 sm:ml-4">
+          <div className="flex flex-col gap-4 sm:w-[250px]">
+             <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="rotation-slider" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Revision Cycle: {rotationDays} Days
+                </Label>
+              </div>
+              <Slider
+                id="rotation-slider"
+                min={1}
+                max={60}
+                step={1}
+                value={[rotationDays]}
+                onValueChange={(val) => setRotationDays(val[0])}
+                className="py-1"
+              />
+            </div>
             <Select value={timeFrame} onValueChange={setTimeFrame}>
-              <SelectTrigger className="w-full sm:w-[180px]">
-                <SelectValue placeholder="Select time frame" />
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Show revisions from..." />
               </SelectTrigger>
               <SelectContent>
                 {timeFrameOptions.map((option) => (
@@ -128,6 +146,7 @@ export function JourneyOverview({ revisions }: JourneyOverviewProps) {
                   revisionsByJuzPart={revisionsByJuzPart}
                   onPartClick={handlePartClick}
                   isMobile={isMobile}
+                  rotationDays={rotationDays}
                 />
               ))}
             </div>
@@ -141,6 +160,8 @@ export function JourneyOverview({ revisions }: JourneyOverviewProps) {
                       <strong>
                         {format(selectedRevision.date, "PPP")}
                       </strong>
+                      <br />
+                      ({differenceInDays(new Date(), selectedRevision.date)} days ago)
                     </DialogDescription>
                   ) : (
                      <DialogDescription>Not yet revised in this period.</DialogDescription>

@@ -1,9 +1,9 @@
 
 "use client";
 
-import { format } from "date-fns";
+import { format, differenceInDays } from "date-fns";
 import { cn } from "@/lib/utils";
-import { juzArabicNames, type Revision, type RevisionQuality } from "@/lib/types";
+import { juzArabicNames, type Revision } from "@/lib/types";
 import {
   Tooltip,
   TooltipContent,
@@ -11,11 +11,6 @@ import {
 } from "@/components/ui/tooltip";
 import { DialogTrigger } from "@/components/ui/dialog";
 
-const qualityColorMap: Record<RevisionQuality, string> = {
-  Excellent: "hsl(var(--primary))",
-  Good: "hsl(var(--accent))",
-  "Needs Improvement": "hsl(var(--destructive))",
-};
 const defaultColor = "hsl(var(--muted))";
 
 type QuadrantProps = {
@@ -25,6 +20,7 @@ type QuadrantProps = {
   revision: Revision | undefined;
   onPartClick: (juz: number, part: number, label: string) => void;
   isMobile: boolean;
+  rotationDays: number;
 };
 
 const Quadrant = ({
@@ -34,6 +30,7 @@ const Quadrant = ({
   revision,
   onPartClick,
   isMobile,
+  rotationDays,
 }: QuadrantProps) => {
   const pathData = [
     "M 50 50 L 50 0 A 50 50 0 0 1 100 50 Z", // Top-right
@@ -42,7 +39,23 @@ const Quadrant = ({
     "M 50 50 L 0 50 A 50 50 0 0 1 50 0 Z", // Top-left
   ][part - 1];
 
-  const color = revision ? qualityColorMap[revision.quality] : defaultColor;
+  let color = defaultColor;
+  let freshnessStatus = "Not yet revised";
+
+  if (revision) {
+    const daysSince = differenceInDays(new Date(), revision.date);
+    
+    if (daysSince <= rotationDays * 0.33) {
+      color = "hsl(var(--primary))"; // Green / Fresh
+      freshnessStatus = "Fresh";
+    } else if (daysSince <= rotationDays) {
+      color = "hsl(var(--accent))"; // Yellow / Due Soon
+      freshnessStatus = "Due Soon";
+    } else {
+      color = "hsl(var(--destructive))"; // Red / Overdue
+      freshnessStatus = "Overdue";
+    }
+  }
 
   const quadrantElement = (
     <path
@@ -65,10 +78,11 @@ const Quadrant = ({
       <TooltipTrigger asChild>{quadrantElement}</TooltipTrigger>
       <TooltipContent>
         <p className="font-bold">{label}</p>
+        <p className="text-xs font-semibold uppercase">{freshnessStatus}</p>
         {revision ? (
           <>
             <p>Last revised: {format(revision.date, "PPP")}</p>
-            <p>Quality: {revision.quality}</p>
+            <p>({differenceInDays(new Date(), revision.date)} days ago)</p>
           </>
         ) : (
           <p>Not yet revised</p>
@@ -83,6 +97,7 @@ type JuzCircleProps = {
   revisionsByJuzPart: Map<string, Revision>;
   onPartClick: (juz: number, part: number, label: string) => void;
   isMobile: boolean;
+  rotationDays: number;
 };
 
 export const JuzCircle = ({
@@ -90,6 +105,7 @@ export const JuzCircle = ({
   revisionsByJuzPart,
   onPartClick,
   isMobile,
+  rotationDays,
 }: JuzCircleProps) => {
   return (
     <div className="relative flex flex-col items-center">
@@ -110,6 +126,7 @@ export const JuzCircle = ({
               revision={revision}
               onPartClick={onPartClick}
               isMobile={isMobile}
+              rotationDays={rotationDays}
             />
           );
         })}
