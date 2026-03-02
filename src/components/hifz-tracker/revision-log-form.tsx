@@ -65,7 +65,7 @@ export function RevisionLogForm({ onSubmit }: RevisionLogFormProps) {
       onSubmit(
         {
           date: values.date,
-          quality: "Excellent", // Defaulting quality internally
+          quality: "Excellent", // Quality is removed from UI but kept in schema as default
           comments: values.comments,
           juzPart: juzPart,
         },
