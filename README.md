@@ -3,23 +3,45 @@
 A dedicated Quran memorization and revision tracking application focused on memory "freshness" and spaced repetition.
 
 ## Features
-- **Freshness Tracking**: Visual indicators (Green/Yellow/Red) based on a customizable revision cycle.
-- **Detailed Log**: Track revisions down to the 1/4 Juz (5 pages) level.
-- **Revision Calendar**: A month-view grid of your activity.
-- **Progress Overview**: A bird's-eye view of all 30 Juz.
+- **Freshness Tracking**: Visual indicators (Green/Yellow/Red) based on a customizable revision cycle (e.g., 10, 20, or 30 days).
+- **No-Friction Logging**: Quickly log revisions by selecting Juz parts (1/4 Juz / 5 pages) without needing to rate quality.
+- **Visual Journey**: A grid of all 30 Juz with interactive quadrants showing the status of every part of the Quran.
+- **Detailed History**: A complete log of all your revision sessions.
+
+## Pushing to GitHub
+
+To push this project to your repository at `https://github.com/mubarakar95/Hifztracker`, follow these steps:
+
+1. **Download the Project**: Click the "Download" icon in the top toolbar to export the project as a ZIP file.
+2. **Extract the Files**: Unzip the project folder on your local computer.
+3. **Open Terminal**: Open your terminal (or Command Prompt/Git Bash) and navigate to the extracted folder.
+4. **Initialize Git & Push**:
+   ```bash
+   # Initialize the local repository
+   git init
+
+   # Add all files
+   git add .
+
+   # Commit the changes
+   git commit -m "Initial commit of Hifz Tracker with freshness logic"
+
+   # Add your GitHub repository as the remote
+   git remote add origin https://github.com/mubarakar95/Hifztracker
+
+   # Ensure you are on the 'main' branch
+   git branch -M main
+
+   # Push to GitHub (you may be prompted for your credentials)
+   git push -u origin main
+   ```
 
 ## Deployment to Vercel
 
 This project is ready to be deployed to Vercel.
 
-### Option 1: Using the Firebase Studio UI
-1. Click the **Deploy** button in the top-right corner of the Firebase Studio interface.
-2. Follow the prompts to connect your Vercel account and project.
+1. Click the **Deploy** button in the top-right corner of the interface.
+2. Follow the prompts to connect your Vercel account.
 
-### Option 2: Manual Deployment via Vercel CLI
-If you have the project files locally:
-1. Install the Vercel CLI: `npm i -g vercel`
-2. Run the deployment command: `vercel --prod`
-
-### Configuration
-The Firebase configuration is already included in `src/firebase/config.ts`. Ensure your Firestore security rules (provided in `firestore.rules`) are deployed to your Firebase project to allow the application to read and write data.
+## Configuration
+The Firebase configuration is included in `src/firebase/config.ts`. Ensure your Firestore security rules are deployed to allow the application to manage revision data securely.
