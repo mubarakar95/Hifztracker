@@ -1,4 +1,3 @@
-
 "use client";
 
 import { BookOpen, Target, Repeat, LogOut } from "lucide-react";
@@ -114,7 +113,7 @@ export function AppHeader({ revisions }: { revisions: Revision[] }) {
             <h1 className="font-headline text-xl font-semibold">Hifz Tracker</h1>
           </div>
           <nav className="hidden md:flex items-center gap-4 text-sm font-medium">
-            <Link href="/" className="text-foreground hover:text-primary transition-colors font-semibold">
+            <Link href="/" className="text-foreground hover:text-primary transition-colors font-semibold border-b-2 border-primary">
               Dashboard
             </Link>
           </nav>
@@ -156,7 +155,7 @@ export function AppHeader({ revisions }: { revisions: Revision[] }) {
       </div>
 
       <div className="grid grid-cols-2 gap-px border-t bg-border md:hidden">
-        <Card className="flex flex-col items-center justify-center gap-1 rounded-none border-0 p-4">
+        <Card className="flex flex-col items-center justify-center gap-1 rounded-none border-0 p-4 shadow-none">
           <div className="flex items-center gap-2">
             <Repeat className="h-5 w-5 text-primary" />
             <span className="text-sm font-medium text-muted-foreground">
@@ -165,7 +164,7 @@ export function AppHeader({ revisions }: { revisions: Revision[] }) {
           </div>
           <span className="text-2xl font-bold text-primary">{dawra}</span>
         </Card>
-        <Card className="flex flex-col items-center justify-center gap-1 rounded-none border-0 p-4">
+        <Card className="flex flex-col items-center justify-center gap-1 rounded-none border-0 p-4 shadow-none">
           <div className="flex items-center gap-2">
             <Target className="h-5 w-5 text-accent" />
             <span className="text-sm font-medium text-muted-foreground">

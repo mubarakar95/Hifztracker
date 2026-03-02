@@ -1,14 +1,15 @@
-
 'use client';
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
+/**
+ * Redirects any leftover attempts to visit /quran back to the dashboard.
+ */
 export default function QuranPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Redirect to home page as the Quran section has been removed
     router.replace('/');
   }, [router]);
 
