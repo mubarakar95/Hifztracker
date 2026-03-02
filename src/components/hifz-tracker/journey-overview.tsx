@@ -168,9 +168,6 @@ export function JourneyOverview({ revisions }: JourneyOverviewProps) {
                   )}
                   {selectedRevision && (
                     <div className="space-y-1 pt-2 text-sm text-muted-foreground">
-                      <div>
-                        Quality: <strong>{selectedRevision.quality}</strong>
-                      </div>
                       {selectedRevision.comments && (
                         <div>Comments: {selectedRevision.comments}</div>
                       )}

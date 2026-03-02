@@ -7,7 +7,6 @@ import { signOut } from "firebase/auth";
 import type { Revision } from "@/lib/types";
 import { juzPartStaticData, juzPartMap } from "@/lib/types";
 import { useMemo } from "react";
-import { differenceInDays } from "date-fns";
 import { useFirebase } from "@/firebase";
 import { Button } from "../ui/button";
 import {
@@ -45,7 +44,6 @@ const calculateObjective = (revisions: Revision[]): string => {
 
   let nextJuzToRevise = "";
   let latestDate = new Date(0);
-  const now = new Date();
 
   // Pick the part that hasn't been revised for the longest time
   for (const juzPart of allJuzParts) {
@@ -96,7 +94,7 @@ export function AppHeader({ revisions }: { revisions: Revision[] }) {
     try {
       await signOut(auth);
     } catch (error) {
-      console.error("Error signing out: ", error);
+      // Errors are handled by FirebaseErrorListener
     }
   };
 
