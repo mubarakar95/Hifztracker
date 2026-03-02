@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -64,7 +65,7 @@ export function RevisionLogForm({ onSubmit }: RevisionLogFormProps) {
       onSubmit(
         {
           date: values.date,
-          quality: "Excellent", // Defaulting quality as it is no longer selected by the user
+          quality: "Excellent", // Defaulting quality internally
           comments: values.comments,
           juzPart: juzPart,
         },
@@ -87,7 +88,7 @@ export function RevisionLogForm({ onSubmit }: RevisionLogFormProps) {
           name="juzParts"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Juz Parts (5 pages)</FormLabel>
+              <FormLabel>Juz Parts (5 pages each)</FormLabel>
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
                   <Button
@@ -104,7 +105,7 @@ export function RevisionLogForm({ onSubmit }: RevisionLogFormProps) {
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-3xl">
+                <DialogContent className="max-w-4xl">
                   <DialogHeader>
                     <DialogTitle>Select Juz Parts for Revision</DialogTitle>
                   </DialogHeader>
@@ -114,10 +115,10 @@ export function RevisionLogForm({ onSubmit }: RevisionLogFormProps) {
                     onSelectedPartsChange={field.onChange}
                   />
 
-                  <DialogFooter>
-                     <Button variant="outline" onClick={() => field.onChange([])}>Clear</Button>
+                  <DialogFooter className="flex items-center justify-between sm:justify-between">
+                     <Button variant="outline" onClick={() => field.onChange([])}>Clear Selection</Button>
                     <DialogClose asChild>
-                      <Button>Done</Button>
+                      <Button>Confirm Selection</Button>
                     </DialogClose>
                   </DialogFooter>
                 </DialogContent>
@@ -172,10 +173,10 @@ export function RevisionLogForm({ onSubmit }: RevisionLogFormProps) {
           name="comments"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Comments</FormLabel>
+              <FormLabel>Notes (Optional)</FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder="Any notes on this revision? (e.g., areas of difficulty, feelings)"
+                  placeholder="Record any reflections or difficult ayahs..."
                   className="resize-none"
                   {...field}
                 />
@@ -184,7 +185,7 @@ export function RevisionLogForm({ onSubmit }: RevisionLogFormProps) {
             </FormItem>
           )}
         />
-        <Button type="submit">Save Revision(s)</Button>
+        <Button type="submit" className="w-full">Save Revision Logs</Button>
       </form>
     </Form>
   );

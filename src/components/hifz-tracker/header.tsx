@@ -21,12 +21,6 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Card } from "../ui/card";
 
-const qualityScoreMap: Record<Revision["quality"], number> = {
-  "Needs Improvement": 3,
-  Good: 2,
-  Excellent: 1,
-};
-
 const calculateObjective = (revisions: Revision[]): string => {
   if (revisions.length === 0) return "Start your journey!";
 
@@ -50,20 +44,16 @@ const calculateObjective = (revisions: Revision[]): string => {
   }
 
   let nextJuzToRevise = "";
-  let maxScore = -1;
+  let latestDate = new Date(0);
   const now = new Date();
 
+  // Pick the part that hasn't been revised for the longest time
   for (const juzPart of allJuzParts) {
     const revision = latestRevisionsMap.get(juzPart);
     if (!revision) continue;
 
-    const qualityScore = qualityScoreMap[revision.quality];
-    const daysSinceRevision = differenceInDays(now, new Date(revision.date));
-
-    const score = qualityScore * 100 + daysSinceRevision;
-
-    if (score > maxScore) {
-      maxScore = score;
+    if (new Date(revision.date) < latestDate || latestDate.getTime() === 0) {
+      latestDate = new Date(revision.date);
       nextJuzToRevise = juzPart;
     }
   }
@@ -94,7 +84,7 @@ const calculateDawra = (revisions: Revision[]): number => {
     }
   }
 
-  return minRevisions;
+  return minRevisions === Infinity ? 0 : minRevisions;
 };
 
 export function AppHeader({ revisions }: { revisions: Revision[] }) {
@@ -127,8 +117,9 @@ export function AppHeader({ revisions }: { revisions: Revision[] }) {
             <h1 className="font-headline text-xl font-semibold">Hifz Tracker</h1>
           </div>
           <nav className="hidden md:flex items-center gap-4 text-sm font-medium">
-            <Link href="/" className="text-foreground hover:text-primary transition-colors">Dashboard</Link>
-            <Link href="/quran" className="text-muted-foreground hover:text-primary transition-colors">Quran</Link>
+            <Link href="/" className="text-foreground hover:text-primary transition-colors font-semibold">
+              Dashboard
+            </Link>
           </nav>
         </div>
         {user && (
@@ -181,10 +172,10 @@ export function AppHeader({ revisions }: { revisions: Revision[] }) {
           <div className="flex items-center gap-2">
             <Target className="h-5 w-5 text-accent" />
             <span className="text-sm font-medium text-muted-foreground">
-              Objective
+              Next Goal
             </span>
           </div>
-          <span className="truncate text-center text-lg font-semibold text-accent">
+          <span className="truncate text-center text-lg font-semibold text-accent max-w-full px-2">
             {objective}
           </span>
         </Card>
@@ -195,7 +186,7 @@ export function AppHeader({ revisions }: { revisions: Revision[] }) {
           <Repeat className="h-5 w-5 text-primary" />
           <div className="flex flex-col">
             <span className="text-sm font-medium text-muted-foreground">
-              Dawra
+              Total Dawras
             </span>
             <span className="font-semibold text-primary">{dawra}</span>
           </div>
@@ -204,9 +195,9 @@ export function AppHeader({ revisions }: { revisions: Revision[] }) {
           <Target className="h-5 w-5 text-accent" />
           <div className="flex flex-col">
             <span className="text-sm font-medium text-muted-foreground">
-              Next Objective
+              Suggested Next Revision
             </span>
-            <span className="font-semibold text-accent truncate max-w-[200px]">
+            <span className="font-semibold text-accent truncate max-w-[250px]">
               {objective}
             </span>
           </div>
