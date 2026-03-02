@@ -45,7 +45,6 @@ const calculateObjective = (revisions: Revision[]): string => {
   let nextJuzToRevise = "";
   let latestDate = new Date(0);
 
-  // Pick the part that hasn't been revised for the longest time
   for (const juzPart of allJuzParts) {
     const revision = latestRevisionsMap.get(juzPart);
     if (!revision) continue;
