@@ -1,19 +1,14 @@
-
 "use client";
 
 import { useMemo, useState } from "react";
 import {
   format,
   getDaysInMonth,
-  startOfMonth,
   addMonths,
   subMonths,
-  isSameDay,
-  getDay,
 } from "date-fns";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { juzArabicNames, type Revision, type RevisionQuality } from "@/lib/types";
+import { juzArabicNames, type Revision } from "@/lib/types";
 import {
   Card,
   CardContent,
@@ -41,12 +36,8 @@ type RevisionsByDayJuz = {
   };
 };
 
-const qualityColorMap: Record<RevisionQuality, string> = {
-  Excellent: "hsl(var(--primary))",
-  Good: "hsl(var(--accent))",
-  "Needs Improvement": "hsl(var(--destructive))",
-};
 const defaultColor = "hsl(var(--muted))";
+const revisedColor = "hsl(var(--primary))";
 
 const MiniJuzCircle = ({ revisions }: { revisions: Revision[] }) => {
   const parts: (Revision | undefined)[] = [
@@ -57,10 +48,7 @@ const MiniJuzCircle = ({ revisions }: { revisions: Revision[] }) => {
   ];
   revisions.forEach((rev) => {
     const partIndex = (parseInt(rev.juzPart, 10) - 1) % 4;
-    // Keep the best quality revision for each part
-    if (!parts[partIndex] || parts[partIndex]!.quality !== 'Excellent') {
-        parts[partIndex] = rev;
-    }
+    parts[partIndex] = rev;
   });
 
   const getPath = (part: number) => {
@@ -75,7 +63,7 @@ const MiniJuzCircle = ({ revisions }: { revisions: Revision[] }) => {
   return (
     <svg viewBox="0 0 100 100" className="h-6 w-6">
       {parts.map((revision, index) => {
-        const color = revision ? qualityColorMap[revision.quality] : defaultColor;
+        const color = revision ? revisedColor : defaultColor;
         const partNumber = index + 1;
         return <path key={partNumber} d={getPath(partNumber)} fill={color} />;
       })}
@@ -95,7 +83,7 @@ export function CustomRevisionCalendar({ revisions }: RevisionCalendarProps) {
 
     return filteredRevisions.reduce((acc, revision) => {
       const day = revision.date.getDate();
-      const juzNumber = Math.floor((parseInt(revision.juzPart, 10) -1) / 4) + 1;
+      const juzNumber = Math.floor((parseInt(revision.juzPart, 10) - 1) / 4) + 1;
 
       if (!acc[day]) {
         acc[day] = {};
@@ -208,7 +196,7 @@ export function CustomRevisionCalendar({ revisions }: RevisionCalendarProps) {
                                         variant="secondary"
                                         className="block"
                                       >
-                                        Part {(parseInt(rev.juzPart) - 1) % 4 + 1} - {rev.quality}
+                                        Part {(parseInt(rev.juzPart) - 1) % 4 + 1}
                                       </Badge>
                                     ))}
                                   </div>

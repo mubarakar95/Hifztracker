@@ -21,7 +21,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { QualityBadge } from "@/components/hifz-tracker/quality-badge";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -98,12 +97,11 @@ export function RevisionHistoryTable({
                 </AlertDialog>
               </div>
               <p className="text-muted-foreground">{format(revision.date, "PPP")}</p>
-              <Separator className="my-2" />
-              <div className="flex items-center justify-between">
-                <QualityBadge quality={revision.quality} />
-              </div>
               {revision.comments && (
-                <p className="mt-2 text-muted-foreground">{revision.comments}</p>
+                <>
+                  <Separator className="my-2" />
+                  <p className="mt-2 text-muted-foreground italic">"{revision.comments}"</p>
+                </>
               )}
             </div>
           ))
@@ -123,7 +121,6 @@ export function RevisionHistoryTable({
               <TableRow>
                 <TableHead>Juz Part</TableHead>
                 <TableHead>Date</TableHead>
-                <TableHead>Quality</TableHead>
                 <TableHead>Comments</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -136,10 +133,7 @@ export function RevisionHistoryTable({
                       {juzPartMap.get(revision.juzPart)}
                     </TableCell>
                     <TableCell>{format(revision.date, "PPP")}</TableCell>
-                    <TableCell>
-                      <QualityBadge quality={revision.quality} />
-                    </TableCell>
-                    <TableCell className="max-w-xs truncate">
+                    <TableCell className="max-w-xs truncate italic">
                       {revision.comments}
                     </TableCell>
                     <TableCell className="text-right">
@@ -190,7 +184,7 @@ export function RevisionHistoryTable({
               ) : (
                 <TableRow>
                   <TableCell
-                    colSpan={5}
+                    colSpan={4}
                     className="h-24 text-center text-muted-foreground"
                   >
                     No revisions logged yet.

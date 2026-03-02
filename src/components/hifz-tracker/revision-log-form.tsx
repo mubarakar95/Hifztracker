@@ -1,4 +1,3 @@
-
 "use client";
 
 import * as React from "react";
@@ -6,10 +5,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, ChevronsUpDown, X } from "lucide-react";
+import { Calendar as CalendarIcon, ChevronsUpDown } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { RevisionQualities } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -25,7 +23,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import type { Revision } from "@/lib/types";
 import {
@@ -44,9 +41,6 @@ const formSchema = z.object({
     .array(z.string())
     .min(1, { message: "Please select at least one juz part." }),
   date: z.date({ required_error: "Please select a revision date." }),
-  quality: z.enum(RevisionQualities, {
-    required_error: "Please rate your revision quality.",
-  }),
   comments: z.string().optional(),
 });
 
@@ -70,7 +64,7 @@ export function RevisionLogForm({ onSubmit }: RevisionLogFormProps) {
       onSubmit(
         {
           date: values.date,
-          quality: values.quality,
+          quality: "Excellent", // Defaulting quality as it is no longer selected by the user
           comments: values.comments,
           juzPart: juzPart,
         },
@@ -169,35 +163,6 @@ export function RevisionLogForm({ onSubmit }: RevisionLogFormProps) {
                   />
                 </PopoverContent>
               </Popover>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="quality"
-          render={({ field }) => (
-            <FormItem className="space-y-3">
-              <FormLabel>Revision Quality</FormLabel>
-              <FormControl>
-                <RadioGroup
-                  onValueChange={field.onChange}
-                  value={field.value}
-                  className="flex flex-col space-y-1"
-                >
-                  {RevisionQualities.map((quality) => (
-                    <FormItem
-                      key={quality}
-                      className="flex items-center space-x-3 space-y-0"
-                    >
-                      <FormControl>
-                        <RadioGroupItem value={quality} />
-                      </FormControl>
-                      <FormLabel className="font-normal">{quality}</FormLabel>
-                    </FormItem>
-                  ))}
-                </RadioGroup>
-              </FormControl>
               <FormMessage />
             </FormItem>
           )}
