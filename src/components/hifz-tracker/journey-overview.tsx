@@ -161,7 +161,7 @@ export function JourneyOverview({ revisions }: JourneyOverviewProps) {
       <CardContent className="space-y-8">
         {/* Linear Freshness Progress Bar */}
         <div className="space-y-2">
-          <div className="flex items-center justify-between text-xs font-medium text-muted-foreground px-1">
+          <div className="flex items-center justify-between text-xs font-medium text-muted-foreground px-2">
             <span>Juz 1</span>
             <span>Juz 15</span>
             <span>Juz 30</span>
