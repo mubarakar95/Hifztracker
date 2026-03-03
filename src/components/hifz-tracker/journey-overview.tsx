@@ -53,12 +53,14 @@ export function JourneyOverview({ revisions }: JourneyOverviewProps) {
     label: string;
   } | null>(null);
   
-  // State initialization
+  // Use state for "now" to avoid hydration mismatch
+  const [now, setNow] = useState<Date | null>(null);
   const [timeFrame, setTimeFrame] = useState<string>("all");
   const [rotationDays, setRotationDays] = useState<number>(15);
 
-  // Load preferences from localStorage on mount
+  // Load preferences and set current time on mount
   useEffect(() => {
+    setNow(new Date());
     const savedRotation = localStorage.getItem("hifz_rotation_days");
     const savedTimeFrame = localStorage.getItem("hifz_time_frame");
     
@@ -79,17 +81,17 @@ export function JourneyOverview({ revisions }: JourneyOverviewProps) {
   };
 
   const filteredRevisions = useMemo(() => {
+    if (!now) return [];
     if (timeFrame === "all") {
       return revisions;
     }
     const days = parseInt(timeFrame, 10);
-    const cutOffDate = subDays(new Date(), days);
+    const cutOffDate = subDays(now, days);
     return revisions.filter((r) => r.date >= cutOffDate);
-  }, [revisions, timeFrame]);
+  }, [revisions, timeFrame, now]);
 
   const revisionsByJuzPart = useMemo(() => {
     const map = new Map<string, Revision>();
-    // Since sorted by date desc in parent, the first occurrence is the latest
     filteredRevisions.forEach((revision) => {
       if (!map.has(revision.juzPart)) {
         map.set(revision.juzPart, revision);
@@ -111,21 +113,22 @@ export function JourneyOverview({ revisions }: JourneyOverviewProps) {
   };
 
   const freshnessGradient = useMemo(() => {
+    if (!now) return "none";
     const stops: string[] = [];
     const totalParts = 120;
 
     for (let i = 1; i <= totalParts; i++) {
       const revision = revisionsByJuzPart.get(i.toString());
-      let color = "hsl(var(--muted))"; // Default: Grey
+      let color = "hsl(var(--muted))";
 
       if (revision) {
-        const daysSince = differenceInDays(new Date(), revision.date);
+        const daysSince = differenceInDays(now, revision.date);
         if (daysSince <= rotationDays * 0.33) {
-          color = "hsl(var(--primary))"; // Green
+          color = "hsl(var(--primary))";
         } else if (daysSince <= rotationDays) {
-          color = "hsl(var(--accent))"; // Yellow
+          color = "hsl(var(--accent))";
         } else {
-          color = "hsl(var(--destructive))"; // Red
+          color = "hsl(var(--destructive))";
         }
       }
       
@@ -134,7 +137,7 @@ export function JourneyOverview({ revisions }: JourneyOverviewProps) {
     }
 
     return `linear-gradient(to right, ${stops.join(", ")})`;
-  }, [revisionsByJuzPart, rotationDays]);
+  }, [revisionsByJuzPart, rotationDays, now]);
 
   return (
     <Card>
@@ -182,7 +185,6 @@ export function JourneyOverview({ revisions }: JourneyOverviewProps) {
         </div>
       </CardHeader>
       <CardContent className="space-y-8">
-        {/* Linear Freshness Progress Bar */}
         <div className="space-y-2">
           <div className="flex items-center justify-between text-xs font-medium text-muted-foreground px-2">
             <span>Juz 1</span>
@@ -219,14 +221,14 @@ export function JourneyOverview({ revisions }: JourneyOverviewProps) {
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>{selectedPart.label}</DialogTitle>
-                  {selectedRevision ? (
+                  {selectedRevision && now ? (
                     <DialogDescription>
                       Last revised on:{" "}
                       <strong>
                         {format(selectedRevision.date, "PPP")}
                       </strong>
                       <br />
-                      ({differenceInDays(new Date(), selectedRevision.date)} days ago)
+                      ({differenceInDays(now, selectedRevision.date)} days ago)
                     </DialogDescription>
                   ) : (
                      <DialogDescription>Not yet revised in this period.</DialogDescription>

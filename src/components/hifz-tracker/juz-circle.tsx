@@ -1,6 +1,7 @@
 
 "use client";
 
+import { useState, useEffect } from "react";
 import { format, differenceInDays } from "date-fns";
 import { cn } from "@/lib/utils";
 import { juzArabicNames, type Revision } from "@/lib/types";
@@ -21,6 +22,7 @@ type QuadrantProps = {
   onPartClick: (juz: number, part: number, label: string) => void;
   isMobile: boolean;
   rotationDays: number;
+  now: Date | null;
 };
 
 const Quadrant = ({
@@ -31,6 +33,7 @@ const Quadrant = ({
   onPartClick,
   isMobile,
   rotationDays,
+  now,
 }: QuadrantProps) => {
   const pathData = [
     "M 50 50 L 50 0 A 50 50 0 0 1 100 50 Z", // Top-right
@@ -42,17 +45,17 @@ const Quadrant = ({
   let color = defaultColor;
   let freshnessStatus = "Not yet revised";
 
-  if (revision) {
-    const daysSince = differenceInDays(new Date(), revision.date);
+  if (revision && now) {
+    const daysSince = differenceInDays(now, revision.date);
     
     if (daysSince <= rotationDays * 0.33) {
-      color = "hsl(var(--primary))"; // Green / Fresh
+      color = "hsl(var(--primary))";
       freshnessStatus = "Fresh";
     } else if (daysSince <= rotationDays) {
-      color = "hsl(var(--accent))"; // Yellow / Due Soon
+      color = "hsl(var(--accent))";
       freshnessStatus = "Due Soon";
     } else {
-      color = "hsl(var(--destructive))"; // Red / Overdue
+      color = "hsl(var(--destructive))";
       freshnessStatus = "Overdue";
     }
   }
@@ -79,10 +82,10 @@ const Quadrant = ({
       <TooltipContent>
         <p className="font-bold">{label}</p>
         <p className="text-xs font-semibold uppercase">{freshnessStatus}</p>
-        {revision ? (
+        {revision && now ? (
           <>
             <p>Last revised: {format(revision.date, "PPP")}</p>
-            <p>({differenceInDays(new Date(), revision.date)} days ago)</p>
+            <p>({differenceInDays(now, revision.date)} days ago)</p>
           </>
         ) : (
           <p>Not yet revised</p>
@@ -107,6 +110,12 @@ export const JuzCircle = ({
   isMobile,
   rotationDays,
 }: JuzCircleProps) => {
+  const [now, setNow] = useState<Date | null>(null);
+
+  useEffect(() => {
+    setNow(new Date());
+  }, []);
+
   return (
     <div className="relative flex flex-col items-center">
       <svg
@@ -127,6 +136,7 @@ export const JuzCircle = ({
               onPartClick={onPartClick}
               isMobile={isMobile}
               rotationDays={rotationDays}
+              now={now}
             />
           );
         })}
