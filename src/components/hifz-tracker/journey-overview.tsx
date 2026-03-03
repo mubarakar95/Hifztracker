@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { format, subDays, differenceInDays } from "date-fns";
 import type { Revision } from "@/lib/types";
 import {
@@ -52,8 +52,31 @@ export function JourneyOverview({ revisions }: JourneyOverviewProps) {
     part: number;
     label: string;
   } | null>(null);
+  
+  // State initialization
   const [timeFrame, setTimeFrame] = useState<string>("all");
   const [rotationDays, setRotationDays] = useState<number>(15);
+
+  // Load preferences from localStorage on mount
+  useEffect(() => {
+    const savedRotation = localStorage.getItem("hifz_rotation_days");
+    const savedTimeFrame = localStorage.getItem("hifz_time_frame");
+    
+    if (savedRotation) setRotationDays(parseInt(savedRotation, 10));
+    if (savedTimeFrame) setTimeFrame(savedTimeFrame);
+  }, []);
+
+  // Save preferences when they change
+  const handleRotationChange = (val: number[]) => {
+    const newDays = val[0];
+    setRotationDays(newDays);
+    localStorage.setItem("hifz_rotation_days", newDays.toString());
+  };
+
+  const handleTimeFrameChange = (val: string) => {
+    setTimeFrame(val);
+    localStorage.setItem("hifz_time_frame", val);
+  };
 
   const filteredRevisions = useMemo(() => {
     if (timeFrame === "all") {
@@ -139,11 +162,11 @@ export function JourneyOverview({ revisions }: JourneyOverviewProps) {
                 max={60}
                 step={1}
                 value={[rotationDays]}
-                onValueChange={(val) => setRotationDays(val[0])}
+                onValueChange={handleRotationChange}
                 className="py-1"
               />
             </div>
-            <Select value={timeFrame} onValueChange={setTimeFrame}>
+            <Select value={timeFrame} onValueChange={handleTimeFrameChange}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Show revisions from..." />
               </SelectTrigger>
