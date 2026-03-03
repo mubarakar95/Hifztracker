@@ -87,6 +87,32 @@ export function JourneyOverview({ revisions }: JourneyOverviewProps) {
     }
   };
 
+  const freshnessGradient = useMemo(() => {
+    const stops: string[] = [];
+    const totalParts = 120;
+
+    for (let i = 1; i <= totalParts; i++) {
+      const revision = revisionsByJuzPart.get(i.toString());
+      let color = "hsl(var(--muted))"; // Default: Grey
+
+      if (revision) {
+        const daysSince = differenceInDays(new Date(), revision.date);
+        if (daysSince <= rotationDays * 0.33) {
+          color = "hsl(var(--primary))"; // Green
+        } else if (daysSince <= rotationDays) {
+          color = "hsl(var(--accent))"; // Yellow
+        } else {
+          color = "hsl(var(--destructive))"; // Red
+        }
+      }
+      
+      const percentage = (i / totalParts) * 100;
+      stops.push(`${color} ${percentage}%`);
+    }
+
+    return `linear-gradient(to right, ${stops.join(", ")})`;
+  }, [revisionsByJuzPart, rotationDays]);
+
   return (
     <Card>
       <CardHeader>
@@ -132,7 +158,23 @@ export function JourneyOverview({ revisions }: JourneyOverviewProps) {
           </div>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-8">
+        {/* Linear Freshness Progress Bar */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-xs font-medium text-muted-foreground px-1">
+            <span>Juz 1</span>
+            <span>Juz 15</span>
+            <span>Juz 30</span>
+          </div>
+          <div 
+            className="h-6 w-full rounded-full border shadow-inner transition-all duration-500 ease-in-out"
+            style={{ background: freshnessGradient }}
+          />
+          <div className="flex justify-center">
+            <span className="text-[10px] text-muted-foreground italic uppercase tracking-widest">Linear Freshness Timeline</span>
+          </div>
+        </div>
+
         <TooltipProvider>
           <Dialog
             open={isMobile && !!selectedPart}
