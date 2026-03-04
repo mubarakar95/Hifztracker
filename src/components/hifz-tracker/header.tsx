@@ -23,33 +23,29 @@ const calculateObjective = (revisions: Revision[]): string => {
   if (revisions.length === 0) return "Start your journey!";
 
   const allJuzParts = juzPartStaticData.map((j) => j.value);
-  const revisedParts = new Set(revisions.map((r) => r.juzPart));
+  const latestRevisionsMap = new Map<string, Date>();
+  
+  for (const revision of revisions) {
+    const existingDate = latestRevisionsMap.get(revision.juzPart);
+    if (!existingDate || revision.date > existingDate) {
+      latestRevisionsMap.set(revision.juzPart, revision.date);
+    }
+  }
 
-  const unrevisedPart = allJuzParts.find((j) => !revisedParts.has(j));
+  // Find first part that has never been revised
+  const unrevisedPart = allJuzParts.find((j) => !latestRevisionsMap.has(j));
   if (unrevisedPart) {
     return juzPartMap.get(unrevisedPart) || "Start your journey!";
   }
 
-  const latestRevisionsMap = new Map<string, Revision>();
-  for (const revision of revisions) {
-    if (
-      !latestRevisionsMap.has(revision.juzPart) ||
-      new Date(revision.date) >
-        new Date(latestRevisionsMap.get(revision.juzPart)!.date)
-    ) {
-      latestRevisionsMap.set(revision.juzPart, revision);
-    }
-  }
-
+  // Otherwise find the part with the oldest revision date
   let nextJuzToRevise = "";
-  let latestDate = new Date(0);
+  let oldestDate = new Date();
 
   for (const juzPart of allJuzParts) {
-    const revision = latestRevisionsMap.get(juzPart);
-    if (!revision) continue;
-
-    if (new Date(revision.date) < latestDate || latestDate.getTime() === 0) {
-      latestDate = new Date(revision.date);
+    const revDate = latestRevisionsMap.get(juzPart);
+    if (revDate && revDate <= oldestDate) {
+      oldestDate = revDate;
       nextJuzToRevise = juzPart;
     }
   }
@@ -68,16 +64,12 @@ const calculateDawra = (revisions: Revision[]): number => {
     );
   }
 
-  if (revisionCounts.size < juzPartStaticData.length) {
-    return 0;
-  }
+  if (revisionCounts.size < 120) return 0;
 
   let minRevisions = Infinity;
-  for (const juzPart of juzPartStaticData) {
-    const count = revisionCounts.get(juzPart.value) || 0;
-    if (count < minRevisions) {
-      minRevisions = count;
-    }
+  for (let i = 1; i <= 120; i++) {
+    const count = revisionCounts.get(i.toString()) || 0;
+    if (count < minRevisions) minRevisions = count;
   }
 
   return minRevisions === Infinity ? 0 : minRevisions;
@@ -91,8 +83,7 @@ export function AppHeader({ revisions }: { revisions: Revision[] }) {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   const getInitials = (name?: string | null) => {

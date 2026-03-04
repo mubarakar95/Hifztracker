@@ -27,7 +27,7 @@ To push this project to your repository at `https://github.com/mubarakar95/Hifzt
    # Commit the changes
    git commit -m "feat: implement freshness tracking and persistent settings"
 
-   # Add your GitHub repository as the remote (if not already added)
+   # Add your GitHub repository as the remote
    git remote add origin https://github.com/mubarakar95/Hifztracker
 
    # Ensure you are on the 'main' branch

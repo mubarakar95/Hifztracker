@@ -58,6 +58,7 @@ export function JourneyOverview({ revisions }: JourneyOverviewProps) {
 
   useEffect(() => {
     setNow(new Date());
+    // Load persisted settings
     const savedRotation = localStorage.getItem("hifz_rotation_days");
     const savedTimeFrame = localStorage.getItem("hifz_time_frame");
     
@@ -89,6 +90,7 @@ export function JourneyOverview({ revisions }: JourneyOverviewProps) {
   const revisionsByJuzPart = useMemo(() => {
     const map = new Map<string, Revision>();
     filteredRevisions.forEach((revision) => {
+      // Keep only the most recent revision for freshness logic
       if (!map.has(revision.juzPart)) {
         map.set(revision.juzPart, revision);
       }
@@ -120,11 +122,11 @@ export function JourneyOverview({ revisions }: JourneyOverviewProps) {
       if (revision) {
         const daysSince = differenceInDays(now, revision.date);
         if (daysSince <= rotationDays * 0.33) {
-          color = "hsl(var(--primary))";
+          color = "hsl(var(--primary))"; // Green
         } else if (daysSince <= rotationDays) {
-          color = "hsl(var(--accent))";
+          color = "hsl(var(--accent))"; // Yellow
         } else {
-          color = "hsl(var(--destructive))";
+          color = "hsl(var(--destructive))"; // Red
         }
       }
       
