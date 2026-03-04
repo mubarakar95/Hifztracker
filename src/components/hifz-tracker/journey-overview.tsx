@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useMemo, useState, useEffect } from "react";
@@ -92,6 +91,7 @@ export function JourneyOverview({ revisions }: JourneyOverviewProps) {
 
   const revisionsByJuzPart = useMemo(() => {
     const map = new Map<string, Revision>();
+    // Since revisions are sorted by date desc in parent, the first one we find is the latest
     filteredRevisions.forEach((revision) => {
       if (!map.has(revision.juzPart)) {
         map.set(revision.juzPart, revision);

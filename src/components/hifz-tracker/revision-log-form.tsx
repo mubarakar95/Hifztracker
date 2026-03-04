@@ -1,4 +1,3 @@
-
 "use client";
 
 import * as React from "react";
@@ -65,7 +64,7 @@ export function RevisionLogForm({ onSubmit }: RevisionLogFormProps) {
       onSubmit(
         {
           date: values.date,
-          quality: "Excellent", // Quality is removed from UI but kept in schema as default
+          quality: "Excellent", // Quality selection removed from UI, defaulting for schema compatibility
           comments: values.comments,
           juzPart: juzPart,
         },

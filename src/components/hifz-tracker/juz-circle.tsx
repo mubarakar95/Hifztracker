@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -48,14 +47,15 @@ const Quadrant = ({
   if (revision && now) {
     const daysSince = differenceInDays(now, revision.date);
     
+    // Freshness logic based on user's rotation cycle
     if (daysSince <= rotationDays * 0.33) {
-      color = "hsl(var(--primary))";
+      color = "hsl(var(--primary))"; // Green
       freshnessStatus = "Fresh";
     } else if (daysSince <= rotationDays) {
-      color = "hsl(var(--accent))";
+      color = "hsl(var(--accent))"; // Yellow/Accent
       freshnessStatus = "Due Soon";
     } else {
-      color = "hsl(var(--destructive))";
+      color = "hsl(var(--destructive))"; // Red
       freshnessStatus = "Overdue";
     }
   }

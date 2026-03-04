@@ -1,4 +1,3 @@
-
 # Hifz Tracker
 
 A dedicated Quran memorization and revision tracking application focused on memory "freshness" and spaced repetition.
