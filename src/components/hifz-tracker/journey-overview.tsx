@@ -52,12 +52,10 @@ export function JourneyOverview({ revisions }: JourneyOverviewProps) {
     label: string;
   } | null>(null);
   
-  // Use state for "now" to avoid hydration mismatch
   const [now, setNow] = useState<Date | null>(null);
   const [timeFrame, setTimeFrame] = useState<string>("all");
   const [rotationDays, setRotationDays] = useState<number>(15);
 
-  // Load preferences and set current time on mount
   useEffect(() => {
     setNow(new Date());
     const savedRotation = localStorage.getItem("hifz_rotation_days");
@@ -67,7 +65,6 @@ export function JourneyOverview({ revisions }: JourneyOverviewProps) {
     if (savedTimeFrame) setTimeFrame(savedTimeFrame);
   }, []);
 
-  // Save preferences when they change
   const handleRotationChange = (val: number[]) => {
     const newDays = val[0];
     setRotationDays(newDays);
@@ -91,7 +88,6 @@ export function JourneyOverview({ revisions }: JourneyOverviewProps) {
 
   const revisionsByJuzPart = useMemo(() => {
     const map = new Map<string, Revision>();
-    // Since revisions are sorted by date desc in parent, the first one we find is the latest
     filteredRevisions.forEach((revision) => {
       if (!map.has(revision.juzPart)) {
         map.set(revision.juzPart, revision);

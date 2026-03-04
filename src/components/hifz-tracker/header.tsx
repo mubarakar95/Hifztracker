@@ -25,13 +25,11 @@ const calculateObjective = (revisions: Revision[]): string => {
   const allJuzParts = juzPartStaticData.map((j) => j.value);
   const revisedParts = new Set(revisions.map((r) => r.juzPart));
 
-  // Find first part that has never been revised
   const unrevisedPart = allJuzParts.find((j) => !revisedParts.has(j));
   if (unrevisedPart) {
     return juzPartMap.get(unrevisedPart) || "Start your journey!";
   }
 
-  // All parts revised at least once, find the one revised longest ago
   const latestRevisionsMap = new Map<string, Revision>();
   for (const revision of revisions) {
     if (
@@ -70,7 +68,6 @@ const calculateDawra = (revisions: Revision[]): number => {
     );
   }
 
-  // If even one part is missing, Dawra is 0
   if (revisionCounts.size < juzPartStaticData.length) {
     return 0;
   }
@@ -95,7 +92,6 @@ export function AppHeader({ revisions }: { revisions: Revision[] }) {
     try {
       await signOut(auth);
     } catch (error) {
-      // Errors are handled by FirebaseErrorListener
     }
   };
 
